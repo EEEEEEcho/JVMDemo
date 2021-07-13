@@ -16,25 +16,23 @@
 
 本节主要讲的是运行时数据区，也就是下图这部分，它是在类加载完成后的阶段
 
-![image-20200705111640511](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509173040.png)
+![468dd5ec-db75-4157-a7f5-b1c6b22564aa](../../../pic/468dd5ec-db75-4157-a7f5-b1c6b22564aa.png)
 
 当我们通过前面的：类的加载-> 验证 -> 准备 -> 解析 -> 初始化 这几个阶段完成后，就会用到执行引擎对我们的类进行使用，同时执行引擎将会使用到我们运行时数据区
 
-![image-20200705111843003](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509173051.png)
+![d699b398-168c-41f9-898f-1ecb0fb54922](../../../pic/d699b398-168c-41f9-898f-1ecb0fb54922.png)
 
 内存是非常重要的系统资源，是硬盘和CPU的中间仓库及桥梁，承载着操作系统和应用程序的实时运行JVM内存布局规定了Java在运行过程中内存申请、分配、管理的策略，保证了JVM的高效稳定运行。不同的JVM对于内存的划分方式和管理机制存在着部分差异。结合JVM虚拟机规范，来探讨一下经典的JVM内存布局。
 
-![image-20210712210908968](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210712210908968.png)
-
-![image-20210509174724223](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509174725.png)
+![image-20210712210908968](../../../pic/image-20210712210908968.png)
 
 我们把大厨后面的东西（切好的菜，刀，调料），比作是运行时数据区。而厨师可以类比于执行引擎，将通过准备的东西进行制作成精美的菜品
 
-![image-20210509174543026](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509174544.png)
+![386d86f1-3095-40b7-848f-3fd07c772306](../../../pic/386d86f1-3095-40b7-848f-3fd07c772306.png)
 
 我们通过磁盘或者网络IO得到的数据，都需要先加载到内存中，然后CPU从内存中获取数据进行读取，也就是说内存充当了CPU和磁盘之间的桥梁
 
-![image-20200705112416101](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509173114.png)
+![419424c8-f9ec-44be-b1c5-4bcf74b4a75a](../../../pic/419424c8-f9ec-44be-b1c5-4bcf74b4a75a.png)
 
 Java虚拟机定义了若干种程序运行期间会使用到的运行时数据区，其中有一些会随着虚拟机启动而创建，随着虚拟机退出而销毁。另外一些则是与线程一一对应的，这些与线程对应的数据区域会随着线程开始和结束而创建和销毁。
 
@@ -43,13 +41,13 @@ Java虚拟机定义了若干种程序运行期间会使用到的运行时数据�
 - 每个线程：独立包括程序计数器、栈、本地栈。
 - 线程间共享：堆、堆外内存（永久代或元空间、代码缓存）,垃圾回收95%发生在堆区，剩余5%发生在方法区（元空间）
 
-![image-20200705112601211](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509173126.png)
+![d7118eb9-dfe2-450d-a352-fe56281df485](../../../pic/d7118eb9-dfe2-450d-a352-fe56281df485.png)
 
 每个JVM只有一个Runtime实例。即为运行时环境，相当于内存结构的中间的那个框框：运行时环境。
 
-![image-20210712211734834](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210712211734834.png)
+![image-20210712211734834](../../../pic/image-20210712211734834.png)
 
-![image-20210509173410373](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509173411.png)
+
 
 ### 3.1.2. 线程
 
@@ -75,13 +73,13 @@ Java虚拟机定义了若干种程序运行期间会使用到的运行时数据�
 
 JVM中的程序计数寄存器（Program Counter Register）中，Register的命名源于CPU的寄存器，寄存器存储指令相关的现场信息。CPU只有把数据装载到寄存器才能够运行。这里，并非是广义上所指的物理寄存器，或许将其翻译为PC计数器（或指令计数器）会更加贴切（也称为程序钩子），并且也不容易引起一些不必要的误会。<mark>JVM中的PC寄存器是对物理PC寄存器的一种抽象模拟</mark>。
 
-![image-20200705155551919](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509175626.png)
+![0b5b92d3-46c2-4e75-984c-f8b375353265](../../../pic/0b5b92d3-46c2-4e75-984c-f8b375353265.png)
 
 **作用**
 
 PC寄存器用来存储指向下一条指令的地址，也即将要执行的指令代码。由执行引擎读取下一条指令。
 
-![image-20200705155728557](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509175630.png)
+![102a4023-a751-4755-bf02-6d8b60812c78](../../../pic/102a4023-a751-4755-bf02-6d8b60812c78.png)
 
 它是一块很小的内存空间，几乎可以忽略不记。也是<mark>运行速度最快的存储区域</mark>。
 
@@ -93,30 +91,38 @@ PC寄存器用来存储指向下一条指令的地址，也即将要执行的指
 
 字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令。
 
-它是唯一一个在Java虚拟机规范中没有规定任何OutofMemoryError情况的区域。
+它是唯一一个在Java虚拟机规范中没有规定任何OutOfMemoryError情况的区域。
 
 **举例说明**
 
 ```java
-public int minus(){
-    intc = 3;
-    intd = 4; 
-    return c - d;
+public class PCRegisterTest {
+    public static void main(String[] args) {
+        int i = 10;
+        int j = 20;
+        int k = i + j;
+    }
 }
 ```
 
 字节码文件：
 
+![image-20210713105306303](../../../pic/image-20210713105306303.png)
+
 ```shell
-0: iconst_3
-1: istore_1
-2: iconst_4
-3: istore_2
-4: iload_1
-5: iload_2
-6: isub
-7: ireturn
+stack=2, locals=4, args_size=1
+0: bipush        10
+2: istore_1
+3: bipush        20
+5: istore_2
+6: iload_1
+7: iload_2
+8: iadd
+9: istore_3
+10: return
 ```
+
+![image-20210713111519983](../../../pic/image-20210713111519983.png)
 
 **使用PC寄存器存储字节码指令地址有什么用呢？为什么使用PC寄存器记录当前线程的执行地址呢？**
 
@@ -124,7 +130,7 @@ public int minus(){
 
 JVM的字节码解释器就需要通过改变PC寄存器的值来明确下一条应该执行什么样的字节码指令。
 
-![image-20200705161409533](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509175648.png)
+![image-20210713110526112](../../../pic/image-20210713110526112.png)
 
 **PC寄存器为什么被设定为私有的？**
 
@@ -138,8 +144,8 @@ JVM的字节码解释器就需要通过改变PC寄存器的值来明确下一条
 
 CPU时间片即CPU分配给各个程序的时间，每个线程被分配一个时间段，称作它的时间片。
 
-在宏观上：俄们可以同时打开多个应用程序，每个程序并行不悖，同时运行。
+在宏观上：我们可以同时打开多个应用程序，每个程序并行不悖，同时运行。
 
 但在微观上：由于只有一个CPU，一次只能处理程序要求的一部分，如何处理公平，一种方法就是引入时间片，每个程序轮流执行。
 
-![image-20200705161849557](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509175655.png)
+![937922ff-81d5-4f74-9d02-fbe302e871da (1)](../../../pic/937922ff-81d5-4f74-9d02-fbe302e871da%20(1).png)
