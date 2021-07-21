@@ -29,7 +29,7 @@
 - 栈解决程序的运行问题，即程序如何执行，或者说如何处理数据。
 - 堆解决的是数据存储的问题，即数据怎么放，放哪里
 
-![image-20200705163928652](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509190211.png)
+![959680d7-1ed9-48b7-9a24-60a98084956a](/workspace/JavaProject/JVMDemo/pic/959680d7-1ed9-48b7-9a24-60a98084956a.png)
 
 ### 4.1.4. 虚拟机栈基本内容
 
