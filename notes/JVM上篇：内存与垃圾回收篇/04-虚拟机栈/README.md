@@ -27,7 +27,7 @@
 <mark>栈是运行时的单位，而堆是存储的单位</mark>
 
 - 栈解决程序的运行问题，即程序如何执行，或者说如何处理数据。
-- 堆解决的是数据存储的问题，即数据怎么放，放哪里
+- 堆解决的是数据存储的问题，即数据怎么放，放哪里，主体数据都是放在堆上
 
 ![959680d7-1ed9-48b7-9a24-60a98084956a](/workspace/JavaProject/JVMDemo/pic/959680d7-1ed9-48b7-9a24-60a98084956a.png)
 
@@ -37,17 +37,42 @@
 
 Java虚拟机栈（Java Virtual Machine Stack），早期也叫Java栈。每个线程在创建时都会创建一个虚拟机栈，其内部保存一个个的栈帧（Stack Frame），对应着一次次的Java方法调用，是线程私有的。
 
+举个例子：
+
+```java
+package chapter04;
+
+public class StackTest {
+    public void methodA(){
+        int i = 10;
+        int j = 20;
+        methodB();
+    }
+    public void methodB(){
+        int m = 30;
+        int n = 40;
+    }
+
+    public static void main(String[] args) {
+        StackTest st = new StackTest();
+        st.methodA();
+    }
+}
+```
+
+![image-20210722094307149](/workspace/JavaProject/JVMDemo/pic/image-20210722094307149.png)
+
 #### 生命周期
 
 生命周期和线程一致
 
 #### 作用
 
-主管Java程序的运行，它保存方法的局部变量、部分结果，并参与方法的调用和返回。
+主管Java程序的运行，它保存方法的局部变量（8种数据类型和对象的引用）、部分结果，并参与方法的调用和返回。
 
 #### 栈的特点
 
-栈是一种快速有效的分配存储方式，访问速度仅次于罹序计数器。
+栈是一种快速有效的分配存储方式，访问速度仅次于程序计数器。
 
 JVM直接对Java栈的操作只有两个：
 
@@ -56,7 +81,7 @@ JVM直接对Java栈的操作只有两个：
 
 对于栈来说不存在垃圾回收问题（栈存在溢出的情况）
 
-![image-20200705165025382](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509190217.png)
+![ae62419a-bf56-4e8b-8af4-216c2c6410d7](../../../pic/ae62419a-bf56-4e8b-8af4-216c2c6410d7.png)
 
 #### 面试题：开发中遇到哪些异常？
 
@@ -65,6 +90,16 @@ JVM直接对Java栈的操作只有两个：
 Java 虚拟机规范允许<mark>Java栈的大小是动态的或者是固定不变的</mark>。
 
 - 如果采用固定大小的Java虚拟机栈，那每一个线程的Java虚拟机栈容量可以在线程创建的时候独立选定。如果线程请求分配的栈容量超过Java虚拟机栈允许的最大容量，Java虚拟机将会抛出一个<mark>StackOverflowError </mark>异常。
+
+  ```java
+  public class StackErrorTest {
+      public static void main(String[] args) {
+          main(args);
+      }
+  }
+  ```
+
+  ![2021-07-22 10-15-45屏幕截图](../../../pic/2021-07-22%2010-15-45%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE.png)
 
 - 如果Java虚拟机栈可以动态扩展，并且在尝试扩展的时候无法申请到足够的内存，或者在创建新的线程时没有足够的内存去创建对应的虚拟机栈，那Java虚拟机将会抛出一个<mark> OutOfMemoryError </mark>异常。
 
@@ -84,6 +119,31 @@ public static void test() {
 
 我们可以使用参数 -Xss选项来设置线程的最大栈空间，栈的大小直接决定了函数调用的最大可达深度
 
+官网中的解释：
+
+```
+-Xss size
+```
+
+Sets the thread stack size (in bytes). Append the letter `k` or `K` to indicate KB, `m` or `M` to indicate MB, and `g` or `G` to indicate GB. The default value depends on the platform:
+
+- Linux/x64 (64-bit): 1024 KB
+- macOS (64-bit): 1024 KB
+- Oracle Solaris/x64 (64-bit): 1024 KB
+- Windows: The default value depends on virtual memory
+
+The following examples set the thread stack size to 1024 KB in different units:
+
+```
+Copy-Xss1m
+-Xss1024k
+-Xss1048576
+```
+
+This option is similar to `-XX:ThreadStackSize`.
+
+证明栈大小
+
 ```java
 public class StackDeepTest{ 
     private static int count=0; 
@@ -101,6 +161,16 @@ public class StackDeepTest{
     }
 }
 ```
+
+测试得到的默认栈大小(Linux)为![2021-07-22 10-29-25屏幕截图](../../../pic/2021-07-22%2010-29-25%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE.png)
+
+然后设置栈的大小
+
+![微信图片_20210722103302](../../../pic/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20210722103302.png)
+
+再次运行之后
+
+![2021-07-22 10-34-21屏幕截图](../../../pic/2021-07-22%2010-34-21%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE.png)
 
 ## 4.2. 栈的存储单位
 
