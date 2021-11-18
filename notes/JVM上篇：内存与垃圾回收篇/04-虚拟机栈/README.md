@@ -29,7 +29,7 @@
 - 栈解决程序的运行问题，即程序如何执行，或者说如何处理数据。
 - 堆解决的是数据存储的问题，即数据怎么放，放哪里，主体数据都是放在堆上
 
-![959680d7-1ed9-48b7-9a24-60a98084956a](/workspace/JavaProject/JVMDemo/pic/959680d7-1ed9-48b7-9a24-60a98084956a.png)
+![959680d7-1ed9-48b7-9a24-60a98084956a](../../../pic/959680d7-1ed9-48b7-9a24-60a98084956a.png)
 
 ### 4.1.4. 虚拟机栈基本内容
 
@@ -60,7 +60,7 @@ public class StackTest {
 }
 ```
 
-![image-20210722094307149](/workspace/JavaProject/JVMDemo/pic/image-20210722094307149.png)
+![image-20210722094307149](../../../pic/image-20210722094307149.png)
 
 #### 生命周期
 
@@ -178,7 +178,7 @@ public class StackDeepTest{
 
 每个线程都有自己的栈，栈中的数据都是以<mark>栈帧（Stack Frame）的格式存在</mark>。
 
-在这个线程上正在执行的每个方法都各自对应一个栈帧（Stack Frame）。
+在这个线程上正在执行的每个方法都各自对应一个栈帧（Stack Frame）。方法的执行和栈帧是一对一的关系。
 
 栈帧是一个内存区块，是一个数据集，维系着方法执行过程中的各种数据信息。
 
@@ -192,25 +192,43 @@ JVM直接对Java栈的操作只有两个，就是对<mark>栈帧的压栈和出�
 
 如果在该方法中调用了其他方法，对应的新的栈帧会被创建出来，放在栈的顶端，成为新的当前帧。
 
-![image-20200705203142545](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509190221.png)
-
-不同线程中所包含的栈帧是不允许存在相互引用的，即不可能在一个栈帧之中引用另外一个线程的栈帧。
-
-如果当前方法调用了其他方法，方法返回之际，当前栈帧会传回此方法的执行结果给前一个栈帧，接着，虚拟机会丢弃当前栈帧，使得前一个栈帧重新成为当前栈帧。
-
-Java方法有两种返回函数的方式，<mark>一种是正常的函数返回，使用return指令；另外一种是抛出异常。不管使用哪种方式，都会导致栈帧被弹出</mark>。
+![345eb786-4faa-44a9-b194-a515a308bfb4](../../../pic/345eb786-4faa-44a9-b194-a515a308bfb4.png)
 
 ```java
-public class CurrentFrameTest{
-    public void methodA(){
-        system.out.println（"当前栈帧对应的方法->methodA");
-        methodB();
-        system.out.println（"当前栈帧对应的方法->methodA");
+ublic class StackFrameTest {
+    public static void main(String[] args) {
+        StackFrameTest s = new StackFrameTest();
+        s.method1();
     }
-    public void methodB(){
-        System.out.println（"当前栈帧对应的方法->methodB");
+    public void method1(){
+        System.out.println("method1 开始执行");
+        method2();
+        System.out.println("method1 执行结束");
     }
+    public int method2(){
+        System.out.println("method2 开始执行");
+        int i = 10;
+        method3();
+        System.out.println("method2 即将结束");
+        return i;
+    }
+    public double method3(){
+        System.out.println("method3 开始执行");
+        double j = 10.14;
+        System.out.println("method3 即将结束");
+        return j;
+    }
+}
+
 ```
+
+![image-20210812212606157](../../../pic/image-20210812212606157.png)
+
+不同线程中所包含的栈帧是不允许存在相互引用的，即不可能在一个栈帧之中引用另外一个线程的栈帧,线程之间是栈隔离的。
+
+如果当前方法调用 了其他方法，方法返回之际，当前栈帧会传回此方法的执行结果给前一个栈帧，接着，虚拟机会丢弃当前栈帧，使得前一个栈帧重新成为当前栈帧。
+
+Java方法有两种返回函数的方式，<mark>一种是正常的函数返回，使用return指令；另外一种是抛出异常（未处理的异常）。不管使用哪种方式，都会导致栈帧被弹出</mark>。
 
 ### 4.2.3. 栈帧的内部结构
 
@@ -222,22 +240,339 @@ public class CurrentFrameTest{
 - 方法返回地址（Return Address）（或方法正常退出或者异常退出的定义）
 - 一些附加信息
 
-![image-20200705204836977](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509190228.png)
+![f0e51fbf-3d3f-4b50-83ab-2e911bbe6fdd](../../../pic/f0e51fbf-3d3f-4b50-83ab-2e911bbe6fdd.png)
 
-并行每个线程下的栈都是私有的，因此每个线程都有自己各自的栈，并且每个栈里面都有很多栈帧，栈帧的大小主要由局部变量表 和 操作数栈决定的
+并行每个线程下的栈都是私有的，因此每个线程都有自己各自的栈，并且每个栈里面都有很多栈帧，**栈帧的大小主要由局部变量表 和 操作数栈决定的**，栈的大小（若栈大小不固定）取决于内部可以存放多少栈帧，栈帧的大小主要取决于内部的局部变量表和操作数栈。
 
-![image-20200705205443993](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509190232.png)
+从整体上来说
+
+![c678d9d8-f251-495e-b681-1b5797386e4a](../../../pic/c678d9d8-f251-495e-b681-1b5797386e4a.png)
 
 ## 4.3. 局部变量表(Local Variables)
 
 局部变量表也被称之为局部变量数组或本地变量表
 
-- <mark>定义为一个数字数组，主要用于存储方法参数和定义在方法体内的局部变量</mark>，这些数据类型包括各类基本数据类型、对象引用（reference），以及returnAddress类型。
+- <mark>定义为一个**数字数组**，主要用于存储方法参数（从传入方法的形参开始）和定义在方法体内的局部变量</mark>，这些数据类型包括各类基本数据类型、对象引用（reference），以及returnAddress类型。
 - 由于局部变量表是建立在线程的栈上，是线程的私有数据，因此<mark>不存在数据安全问题</mark>
-
 - <mark>局部变量表所需的容量大小是在编译期确定下来的</mark>，并保存在方法的Code属性的maximum local variables数据项中。在方法运行期间是不会改变局部变量表的大小的。
 - <mark>方法嵌套调用的次数由栈的大小决定</mark>。一般来说，栈越大，方法嵌套调用次数越多。对一个函数而言，它的参数和局部变量越多，使得局部变量表膨胀，它的栈帧就越大，以满足方法调用所需传递的信息增大的需求。进而函数调用就会占用更多的栈空间，导致其嵌套调用次数就会减少。
 - <mark>局部变量表中的变量只在当前方法调用中有效</mark>。在方法执行时，虚拟机通过使用局部变量表完成参数值到参数变量列表的传递过程。当方法调用结束后，随着方法栈帧的销毁，局部变量表也会随之销毁。
+
+```java
+public class LocalVariablesTest {
+    private int count = 0;
+
+    public static void main(String[] args) {
+        LocalVariablesTest l = new LocalVariablesTest();
+        int num = 10;
+        l.test1();
+    }
+
+    public void test1(){
+        Date date = new Date();
+        String name = "ech0";
+        String info = test2(date,name);
+        System.out.println(date + name);
+    }
+
+    public String test2(Date dateP,String name2){
+         dateP = null;
+         name2 = "jane";
+         double weight = 110.0;
+         char gender = '男';
+         return dateP + name2;
+    }
+
+    public void test3(){
+        count ++;
+    }
+
+    public void test4(){
+        int a = 0;
+        {
+            int b = 0;
+            b = a + 1;
+        }
+        int c = a + 1;
+    }
+}
+```
+
+反编译
+
+```bash
+Classfile /G:/JVMDemo/target/classes/chapter04/LocalVariablesTest.class
+  Last modified 2021-8-12; size 1606 bytes
+  MD5 checksum 7889a006dbd196077ceea43fc9d13ff6
+  Compiled from "LocalVariablesTest.java"
+public class chapter04.LocalVariablesTest
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #20.#57        // java/lang/Object."<init>":()V
+   #2 = Fieldref           #3.#58         // chapter04/LocalVariablesTest.count:I
+   #3 = Class              #59            // chapter04/LocalVariablesTest
+   #4 = Methodref          #3.#57         // chapter04/LocalVariablesTest."<init>":()V
+   #5 = Methodref          #3.#60         // chapter04/LocalVariablesTest.test1:()V
+   #6 = Class              #61            // java/util/Date
+   #7 = Methodref          #6.#57         // java/util/Date."<init>":()V
+   #8 = String             #62            // ech0
+   #9 = Methodref          #3.#63         // chapter04/LocalVariablesTest.test2:(Ljava/util/Date;Ljava/lang/String;)Ljava/lang/String;
+  #10 = Fieldref           #64.#65        // java/lang/System.out:Ljava/io/PrintStream;
+  #11 = Class              #66            // java/lang/StringBuilder
+  #12 = Methodref          #11.#57        // java/lang/StringBuilder."<init>":()V
+  #13 = Methodref          #11.#67        // java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+  #14 = Methodref          #11.#68        // java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+  #15 = Methodref          #11.#69        // java/lang/StringBuilder.toString:()Ljava/lang/String;
+  #16 = Methodref          #70.#71        // java/io/PrintStream.println:(Ljava/lang/String;)V
+  #17 = String             #72            // jane
+  #18 = Double             110.0d
+  #20 = Class              #73            // java/lang/Object
+  #21 = Utf8               count
+  #22 = Utf8               I
+  #23 = Utf8               <init>
+  #24 = Utf8               ()V
+  #25 = Utf8               Code
+  #26 = Utf8               LineNumberTable
+  #27 = Utf8               LocalVariableTable
+  #28 = Utf8               this
+  #29 = Utf8               Lchapter04/LocalVariablesTest;
+  #30 = Utf8               main
+  #31 = Utf8               ([Ljava/lang/String;)V
+  #32 = Utf8               args
+  #33 = Utf8               [Ljava/lang/String;
+  #34 = Utf8               l
+  #35 = Utf8               num
+  #36 = Utf8               test1
+  #37 = Utf8               date
+  #38 = Utf8               Ljava/util/Date;
+  #39 = Utf8               name
+  #40 = Utf8               Ljava/lang/String;
+  #41 = Utf8               info
+  #42 = Utf8               test2
+  #43 = Utf8               (Ljava/util/Date;Ljava/lang/String;)Ljava/lang/String;
+  #44 = Utf8               dateP
+  #45 = Utf8               name2
+  #46 = Utf8               weight
+  #47 = Utf8               D
+  #48 = Utf8               gender
+  #49 = Utf8               C
+  #50 = Utf8               test3
+  #51 = Utf8               test4
+  #52 = Utf8               b
+  #53 = Utf8               a
+  #54 = Utf8               c
+  #55 = Utf8               SourceFile
+  #56 = Utf8               LocalVariablesTest.java
+  #57 = NameAndType        #23:#24        // "<init>":()V
+  #58 = NameAndType        #21:#22        // count:I
+  #59 = Utf8               chapter04/LocalVariablesTest
+  #60 = NameAndType        #36:#24        // test1:()V
+  #61 = Utf8               java/util/Date
+  #62 = Utf8               ech0
+  #63 = NameAndType        #42:#43        // test2:(Ljava/util/Date;Ljava/lang/String;)Ljava/lang/String;
+  #64 = Class              #74            // java/lang/System
+  #65 = NameAndType        #75:#76        // out:Ljava/io/PrintStream;
+  #66 = Utf8               java/lang/StringBuilder
+  #67 = NameAndType        #77:#78        // append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+  #68 = NameAndType        #77:#79        // append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+  #69 = NameAndType        #80:#81        // toString:()Ljava/lang/String;
+  #70 = Class              #82            // java/io/PrintStream
+  #71 = NameAndType        #83:#84        // println:(Ljava/lang/String;)V
+  #72 = Utf8               jane
+  #73 = Utf8               java/lang/Object
+  #74 = Utf8               java/lang/System
+  #75 = Utf8               out
+  #76 = Utf8               Ljava/io/PrintStream;
+  #77 = Utf8               append
+  #78 = Utf8               (Ljava/lang/Object;)Ljava/lang/StringBuilder;
+  #79 = Utf8               (Ljava/lang/String;)Ljava/lang/StringBuilder;
+  #80 = Utf8               toString
+  #81 = Utf8               ()Ljava/lang/String;
+  #82 = Utf8               java/io/PrintStream
+  #83 = Utf8               println
+  #84 = Utf8               (Ljava/lang/String;)V
+{
+  public chapter04.LocalVariablesTest();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: iconst_0
+         6: putfield      #2                  // Field count:I
+         9: return
+      LineNumberTable:
+        line 5: 0
+        line 6: 4
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      10     0  this   Lchapter04/LocalVariablesTest;
+
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=3, args_size=1		# 局部变量表长度，是locals的值，为3
+         0: new           #3                  // class chapter04/LocalVariablesTest
+         3: dup
+         4: invokespecial #4                  // Method "<init>":()V
+         7: astore_1
+         8: bipush        10
+        10: istore_2
+        11: aload_1
+        12: invokevirtual #5                  // Method test1:()V
+        15: return
+      LineNumberTable:
+        line 9: 0
+        line 10: 8
+        line 11: 11
+        line 12: 15
+      LocalVariableTable:			#也可以从这里看出来，main方法局部变量表中有三个参数，第一个是String类型的引用名为args，第二个是LocalVariableTest对象的引用名为l，第三个是一个int类型的变量名为num
+        Start  Length  Slot  Name   Signature
+            0      16     0  args   [Ljava/lang/String;
+            8       8     1     l   Lchapter04/LocalVariablesTest;
+           11       5     2   num   I
+
+  public void test1();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=3, locals=4, args_size=1
+         0: new           #6                  // class java/util/Date
+         3: dup
+         4: invokespecial #7                  // Method java/util/Date."<init>":()V
+         7: astore_1
+         8: ldc           #8                  // String ech0
+        10: astore_2
+        11: aload_0
+        12: aload_1
+        13: aload_2
+        14: invokevirtual #9                  // Method test2:(Ljava/util/Date;Ljava/lang/String;)Ljava/lang/String;
+        17: astore_3
+        18: getstatic     #10                 // Field java/lang/System.out:Ljava/io/PrintStream;
+        21: new           #11                 // class java/lang/StringBuilder
+        24: dup
+        25: invokespecial #12                 // Method java/lang/StringBuilder."<init>":()V
+        28: aload_1
+        29: invokevirtual #13                 // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+        32: aload_2
+        33: invokevirtual #14                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        36: invokevirtual #15                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        39: invokevirtual #16                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        42: return
+      LineNumberTable:
+        line 15: 0
+        line 16: 8
+        line 17: 11
+        line 18: 18
+        line 19: 42
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      43     0  this   Lchapter04/LocalVariablesTest;
+            8      35     1  date   Ljava/util/Date;
+           11      32     2  name   Ljava/lang/String;
+           18      25     3  info   Ljava/lang/String;
+
+  public java.lang.String test2(java.util.Date, java.lang.String);
+    descriptor: (Ljava/util/Date;Ljava/lang/String;)Ljava/lang/String;
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=6, args_size=3
+         0: aconst_null
+         1: astore_1
+         2: ldc           #17                 // String jane
+         4: astore_2
+         5: ldc2_w        #18                 // double 110.0d
+         8: dstore_3
+         9: sipush        30007
+        12: istore        5
+        14: new           #11                 // class java/lang/StringBuilder
+        17: dup
+        18: invokespecial #12                 // Method java/lang/StringBuilder."<init>":()V
+        21: aload_1
+        22: invokevirtual #13                 // Method java/lang/StringBuilder.append:(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+        25: aload_2
+        26: invokevirtual #14                 // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        29: invokevirtual #15                 // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        32: areturn
+      LineNumberTable:
+        line 22: 0
+        line 23: 2
+        line 24: 5
+        line 25: 9
+        line 26: 14
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      33     0  this   Lchapter04/LocalVariablesTest;
+            0      33     1 dateP   Ljava/util/Date;
+            0      33     2 name2   Ljava/lang/String;
+            9      24     3 weight   D
+           14      19     5 gender   C
+
+  public void test3();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=3, locals=1, args_size=1
+         0: aload_0
+         1: dup
+         2: getfield      #2                  // Field count:I
+         5: iconst_1
+         6: iadd
+         7: putfield      #2                  // Field count:I
+        10: return
+      LineNumberTable:
+        line 30: 0
+        line 31: 10
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      11     0  this   Lchapter04/LocalVariablesTest;
+
+  public void test4();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=3, args_size=1
+         0: iconst_0
+         1: istore_1
+         2: iconst_0
+         3: istore_2
+         4: iload_1
+         5: iconst_1
+         6: iadd
+         7: istore_2
+         8: iload_1
+         9: iconst_1
+        10: iadd
+        11: istore_2
+        12: return
+      LineNumberTable:
+        line 34: 0
+        line 36: 2
+        line 37: 4
+        line 39: 8
+        line 40: 12
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            4       4     2     b   I
+            0      13     0  this   Lchapter04/LocalVariablesTest;
+            2      11     1     a   I
+           12       1     2     c   I
+}
+SourceFile: "LocalVariablesTest.java"
+```
+
+main方法的局部变量表分析
+
+![image-20210812220053222](../../../pic/image-20210812220053222.png)
+
+或者在jclasslib中查看
+
+![image-20210812225559290](../../../pic/image-20210812225559290.png)
 
 ### 4.3.1. 关于Slot的理解
 

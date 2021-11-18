@@ -24,9 +24,13 @@
 - 本地方法接口
 - 本地方法库
 
-![image-20200705080719531](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507115101.png)
+![image-20211103092809289](README.assets/image-20211103092809289.png)
 
-![image-20200705080911284](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507115120.png)
+
+
+![image-20211103092901658](README.assets/image-20211103092901658.png)
+
+
 
 如果自己想手写一个Java虚拟机的话，主要考虑哪些结构呢？
 
@@ -37,21 +41,21 @@
 
 **类加载器子系统作用**
 
-![image-20200705081813409](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507135719.png)
+![image-20211103093710656](README.assets/image-20211103093710656.png)
 
 - 类加载器子系统负责从文件系统或者网络中加载Class文件，class文件在文件开头有特定的文件标识。
 - ClassLoader只负责class文件的加载，至于它是否可以运行，则由执行引擎Execution Engine决定，婚姻介绍所只负责给你女方的联系方式，但是能不能成，就看自己了，婚姻介绍所就是类加载器，而自己就是执行引擎。
 - class文件只是物理磁盘上的一个文件，**加载的类信息存放于一块称为方法区的内存空间**。除了类的信息外，**方法区中还会存放运行时常量池信息**，可能还包括字符串字面量和数字常量（这部分常量信息是Class文件中常量池部分的内存映射）
 - 常量池：在我们反编译之后的**字节码中**可以看到**常量池**的信息，常量池由**类加载器加载到内存中**之后就成为了**运行时常量池**
-  ![image-20210628150350271](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210628150350271.png)
+  ![image-20210628150350271](README.assets/image-20210628150350271-16359037191862.png)
 
-**类加载器ClasLoader角色**
+**类加载器ClassLoader角色**
 
-![image-20200705081913538](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507140219.png)
+![image-20211103094249407](README.assets/image-20211103094249407.png)
 
 - class file存在于本地硬盘上，可以理解为设计师画在纸上的模板，而最终这个模板在执行的时候是要加载到JVM当中来根据这个文件实例化出n个一模一样的实例。
-- class file加载到JVM中，被称为DNA元数据模板，放在方法区。
-- 在.class文件 -> JVM -> 最终成为元数据模板，此过程就要一个运输工具（类装载器Class Loader），扮演一个快递员的角色，方法getClassLoader()可以用来获取加载该字节码的类加载器实例。
+- class file加载到JVM中，被称为DNA元数据模板，放在**方法区**。
+- 在.class文件 -> JVM -> 最终成为元数据模板，此过程就要一个运输工具（类装载器Class Loader），扮演一个快递员的角色，方法getClassLoader()可以用来获取加载该字节码的**类加载器实例**。
 
 **类的加载过程**
 
@@ -68,11 +72,13 @@ public class HelloLoader {
 
 用流程图表示上述示例代码：
 
-![image-20200705082255746](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507140759.png)
+![image-20211103094428378](README.assets/image-20211103094428378.png)
 
 ### 加载阶段
 
-![image-20200705082601441](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507205501.png)
+
+
+![image-20211103094720278](README.assets/image-20211103094720278.png)
 
 - 1. 通过一个类的全限定名获取定义此类的二进制字节流
 - 2. 将这个**字节流所代表的静态存储结构转化为方法区的运行时数据结构**
@@ -94,7 +100,7 @@ public class HelloLoader {
   - 目的在子确保Class文件的字节流中包含信息符合当前虚拟机要求，保证被加载类的正确性，不会危害虚拟机自身安全。
   - 主要包括四种验证，<mark>文件格式验证，元数据验证，字节码验证，符号引用验证。</mark>
 - **准备（Prepare）**：
-  - **为类变量分配内存**并且设置该类变量的默认初始值，即零值。
+  - **为类变量（静态变量）分配内存**并且设置该类变量（静态变量）的默认初始值，即零值。
   
   - <mark>这里不包含用final修饰的static，因为final在编译的时候就会分配了，准备阶段会显式初始化；</mark>
   
@@ -537,3 +543,4 @@ Java程序对类的使用方式分为：主动使用和被动使用。
 除了以上七种情况，其他使用Java类的方式都被看作是对<mark>类的被动使用</mark>，都<mark>不会导致类的初始化</mark>。
 
 **主动使用会导致类的初始化，被动使用不会有类的初始化**
+
