@@ -6,13 +6,11 @@ public class ClassInitTest {
     static {
         num = 2;
         number = 20;
-        System.out.println(num);
-        //System.out.println(number); //非法前向引用
     }
 
     /**
-     * 该变量在prepare阶段会分配内存，并且初始化值为0，
-     * 然后在initial阶段，这个number变量已经有了存储空间，然后
+     * 该变量在链接的prepare阶段会分配内存，并且初始化值为0，
+     * 然后在初始化initial阶段，这个number变量已经有了存储空间，然后
      * <clinit>()方法将所有静态变量的操作收集起来进行执行，
      * 执行时按顺序执行，最后这个number的值会被赋值为10
      * prepare:number = 0

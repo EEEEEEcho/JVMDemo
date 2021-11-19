@@ -74,6 +74,8 @@ public class HelloLoader {
 
 ![image-20211103094428378](README.assets/image-20211103094428378.png)
 
+## 类的加载过程
+
 ### 加载阶段
 
 
@@ -81,7 +83,7 @@ public class HelloLoader {
 ![image-20211103094720278](README.assets/image-20211103094720278.png)
 
 - 1. 通过一个类的全限定名获取定义此类的二进制字节流
-- 2. 将这个**字节流所代表的静态存储结构转化为方法区的运行时数据结构**
+- 2. 将这个**字节流所代表的静态存储结构转化为方法区（永久代、元空间）的运行时数据结构**
 - 3. 在内存中生成一个代表这个类的java.lang.Class对象，作为方法区这个类的各种数据的访问入口
 
 **补充：加载class文件的方式**
@@ -94,10 +96,12 @@ public class HelloLoader {
 - 从专有<mark>数据库</mark>中提取.class文件，比较少见
 - 从<mark>加密文件</mark>中获取，典型的防Class文件被反编译的保护措施
 
+**需要注意的是生成Class对象的实例是在这个阶段做的。**
+
 ###  链接阶段
 
 - **验证（Verify）**：
-  - 目的在子确保Class文件的字节流中包含信息符合当前虚拟机要求，保证被加载类的正确性，不会危害虚拟机自身安全。
+  - 目的在于确保Class文件的字节流中包含信息符合当前虚拟机要求，保证被加载类的正确性，不会危害虚拟机自身安全。
   - 主要包括四种验证，<mark>文件格式验证，元数据验证，字节码验证，符号引用验证。</mark>
 - **准备（Prepare）**：
   - **为类变量（静态变量）分配内存**并且设置该类变量（静态变量）的默认初始值，即零值。
@@ -124,7 +128,7 @@ public class HelloLoader {
 - **解析（Resolve）**：
   
   - 将常量池内的<mark>符号引用转换为直接引用</mark>的过程。
-  - 事实上，解析操作往往会伴**随着JVM在执行完初始化之后再执行。**
+  - 事实上，解析操作往往会伴**随着JVM在类加载过程中执行完初始化阶段之后再执行。**
   - 符号引用就是一组符号来描述所引用的目标。符号引用的字面量形式明确定义在《java虚拟机规范》的Class文件格式中。直接引用就是直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄。
   - 解析动作主要针对类或接口、字段、类方法、接口方法、方法类型等。对应常量池中的CONSTANT_Class_info，CONSTANT_Fieldref_info、CONSTANT_Methodref_info等。
 
@@ -146,10 +150,100 @@ public class HelloLoader {
 
   使用jclasslib反编译之后。
 
-  ![image-20210629094258815](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210629094258815.png)
-  ![image-20210629094350364](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210629094350364.png)
+  ```bash
+  Classfile /workspace/JavaProject/JVMDemo/target/classes/chapter02/HelloApp.class
+    Last modified 2021-11-19; size 594 bytes
+    MD5 checksum 2fdc06902924410371524def87dff7d4
+    Compiled from "HelloApp.java"
+  public class chapter02.HelloApp
+    minor version: 0
+    major version: 52
+    flags: ACC_PUBLIC, ACC_SUPER
+  Constant pool:	# ***********常量池在这里***********
+     #1 = Methodref          #6.#23         // java/lang/Object."<init>":()V
+     #2 = Fieldref           #24.#25        // java/lang/System.out:Ljava/io/PrintStream;
+     #3 = Fieldref           #5.#26         // chapter02/HelloApp.a:I
+     #4 = Methodref          #27.#28        // java/io/PrintStream.println:(I)V
+     #5 = Class              #29            // chapter02/HelloApp
+     #6 = Class              #30            // java/lang/Object
+     #7 = Utf8               a
+     #8 = Utf8               I
+     #9 = Utf8               <init>
+    #10 = Utf8               ()V
+    #11 = Utf8               Code
+    #12 = Utf8               LineNumberTable
+    #13 = Utf8               LocalVariableTable
+    #14 = Utf8               this
+    #15 = Utf8               Lchapter02/HelloApp;
+    #16 = Utf8               main
+    #17 = Utf8               ([Ljava/lang/String;)V
+    #18 = Utf8               args
+    #19 = Utf8               [Ljava/lang/String;
+    #20 = Utf8               <clinit>
+    #21 = Utf8               SourceFile
+    #22 = Utf8               HelloApp.java
+    #23 = NameAndType        #9:#10         // "<init>":()V
+    #24 = Class              #31            // java/lang/System
+    #25 = NameAndType        #32:#33        // out:Ljava/io/PrintStream;
+    #26 = NameAndType        #7:#8          // a:I
+    #27 = Class              #34            // java/io/PrintStream
+    #28 = NameAndType        #35:#36        // println:(I)V
+    #29 = Utf8               chapter02/HelloApp
+    #30 = Utf8               java/lang/Object
+    #31 = Utf8               java/lang/System
+    #32 = Utf8               out
+    #33 = Utf8               Ljava/io/PrintStream;
+    #34 = Utf8               java/io/PrintStream
+    #35 = Utf8               println
+    #36 = Utf8               (I)V
+  {
+    public chapter02.HelloApp();
+      descriptor: ()V
+      flags: ACC_PUBLIC
+      Code:
+        stack=1, locals=1, args_size=1
+           0: aload_0
+           1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+           4: return
+        LineNumberTable:
+          line 3: 0
+        LocalVariableTable:
+          Start  Length  Slot  Name   Signature
+              0       5     0  this   Lchapter02/HelloApp;
+  
+    public static void main(java.lang.String[]);
+      descriptor: ([Ljava/lang/String;)V
+      flags: ACC_PUBLIC, ACC_STATIC
+      Code:
+        stack=2, locals=1, args_size=1
+           0: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+           3: getstatic     #3                  // Field a:I
+           6: invokevirtual #4                  // Method java/io/PrintStream.println:(I)V
+           9: return
+        LineNumberTable:
+          line 11: 0
+          line 12: 9
+        LocalVariableTable:
+          Start  Length  Slot  Name   Signature
+              0      10     0  args   [Ljava/lang/String;
+  
+    static {};
+      descriptor: ()V
+      flags: ACC_STATIC
+      Code:
+        stack=1, locals=0, args_size=0
+           0: iconst_1
+           1: putstatic     #3                  // Field a:I
+           4: return
+        LineNumberTable:
+          line 8: 0
+  }
+  SourceFile: "HelloApp.java"
+  
+  ```
+  
   修改代码
-
+  
   ```java
   public class ClassInitTest {
       private static int num = 1;
@@ -163,9 +257,9 @@ public class HelloLoader {
       }
   }
   ```
-
-  ![image-20210629094513325](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210629094513325.png)
-
+  
+  ![image-20211119164719546](README.assets/image-20211119164719546.png)
+  
 - 构造器方法中指令按语句在源文件中出现的顺序执行。
 
   ```java
@@ -194,7 +288,7 @@ public class HelloLoader {
   }
   ```
 
-  ![image-20210629095326965](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210629095326965.png)
+  ![image-20211119164944099](README.assets/image-20211119164944099-1637311785181.png)
 
 - <mark>&lt;clinit&gt;()不同于类的构造器。</mark>（关联：构造器是虚拟机视角下的&lt;init&gt;()）
 
@@ -210,7 +304,8 @@ public class HelloLoader {
 
   由于没有静态变量，所以就不会生成&lt;clinit>()方法了，所以&lt;clinit>()是用来处理静态变量初始化的。
 
-  ![image-20210629095733593](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210629095733593.png)
+  ![image-20211119165503481](README.assets/image-20211119165503481.png)
+
   由上述可以看到，任何一个类声明之后，内置至少存在一个类构造器，就是&lt;init>()方法。
 
   ```java
@@ -229,7 +324,7 @@ public class HelloLoader {
   }
   ```
 
-  ![image-20210629100142132](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210629100142132.png)
+  ![image-20211119165711327](README.assets/image-20211119165711327.png)
 
 - 若该类具有父类，JVM会保证子类的&lt;clinit&gt;()执行前，父类的&lt;clinit&gt;()已经执行完毕。
 
@@ -252,7 +347,7 @@ public class HelloLoader {
   }
   ```
 
-- 虚拟机必须保证一个类的&lt;clinit&gt;()方法在多线程下被同步加锁。
+- 虚拟机必须保证一个类的&lt;clinit&gt;()方法在多线程下被同步加锁，虚拟机在执行类的加载的时候只会调用一次clinit()方法。
 
   ```java
   public class DeadThreadTest {
@@ -282,7 +377,12 @@ public class HelloLoader {
   }
   ```
 
-  ![image-20210629101148618](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210629101148618.png)
+  ```bash
+  线程1开始
+  线程2开始
+  线程1初始化当前类
+  ```
+  
   可以发现，线程1抢占到了初始化DeadThread,但是该类只会被初始化一次，线程1抢到了，线程2进入了阻塞状态。所以，只能看到线程1来初始化该类。
 
 ## 2.3. 类加载器分类
