@@ -387,15 +387,21 @@ public class HelloLoader {
 
 ## 2.3. 类加载器分类
 
+在类加载子系统中，加载阶段需要使用类加载器
+
 JVM支持两种类型的类加载器 。分别为<mark>引导类加载器（Bootstrap ClassLoader）</mark>和<mark>自定义类加载器（User-Defined ClassLoader）</mark>。
 
 从概念上来讲，自定义类加载器一般指的是程序中由开发人员自定义的一类类加载器，但是Java虚拟机规范却没有这么定义，而是将<mark>所有派生于抽象类ClassLoader的类加载器都划分为自定义类加载器</mark>，所以Extension Class Loader和System Class Loader都属于自定义类加载器。
 
 无论类加载器的类型如何划分，在程序中我们最常见的类加载器始终只有3个，如下所示：
 
-![image-20200705094149223](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507211444.png)
+![image-20211120164415680](README.assets/image-20211120164415680.png)
 
-这里的四者之间的关系是包含关系。不是上层下层，也不是子父类的继承关系。
+这里的四者之间的关系是包含关系。**不是上层下层，也不是子父类的继承关系，应该是一种等级关系。**
+
+![image-20211120164454830](README.assets/image-20211120164454830.png)
+
+
 
 ```java
 public class ClassLoaderTest {
@@ -424,12 +430,12 @@ public class ClassLoaderTest {
 
 ### 2.3.1. 虚拟机自带的加载器
 
-**启动类加载器（引导类加载器，Bootstrap ClassLoader）**
+**引导类加载器（启动类加载器，Bootstrap ClassLoader）**
 
 - 这个类加载使用C/C++语言实现的，嵌套在JVM内部。
 - 它用来加载Java的核心库（JAVA_HOME/jre/lib/rt.jar、resources.jar或sun.boot.class.path路径下的内容），用于提供JVM自身需要的类
 - 并不继承自java.lang.ClassLoader，没有父加载器。
-- 加载扩展类和应用程序类加载器，并指定为他们的父类加载器。
+- 加载 扩展类和系统类加载器（应用程序类加载器），并指定为他们的父类加载器。
 - 出于安全考虑，Bootstrap启动类加载器只加载包名为java、javax、sun等开头的类
 
 **扩展类加载器（Extension ClassLoader）**
@@ -443,7 +449,7 @@ public class ClassLoaderTest {
 
 - java语言编写，由sun.misc.LaunchersAppClassLoader实现
 - 派生于ClassLoader类
-- 父类加载器为扩展类加载器
+- **父类加载器为扩展类加载器**
 - 它**负责加载环境变量classpath或系统属性java.class.path指定路径下的类库**
 - <mark>该类加载器是程序中默认的类加载器</mark>，一般来说，Java应用的类都是由它来完成加载
 - 通过ClassLoader.getSystemclassLoader() 方法可以获取到该类加载器
@@ -494,16 +500,18 @@ public class ClassLoaderTest2 {
 
 ### 2.3.2. 用户自定义类加载器
 
-在Java的日常应用程序开发中，类的加载几乎是由上述3种类加载器相互配合执行的，在必要时，我们还可以自定义类加载器，来定制类的加载方式。 为什么要自定义类加载器？
+在Java的日常应用程序开发中，类的加载几乎是由上述3种类加载器相互配合执行的，在必要时，我们还可以自定义类加载器，来定制类的加载方式。 
 
-- 隔离加载类
+为什么要自定义类加载器？
+
+- 隔离加载类，解决工程中某些中间件引入的jar包和工程自身使用的jar包有冲突。所以进行隔离加载
 - 修改类加载的方式
 - 扩展加载源
 - 防止源码泄漏
 
 用户自定义类加载器实现步骤：
 
-1. 开发人员可以通过继承抽象类ava.lang.ClassLoader类的方式，实现自己的类加载器，以满足一些特殊的需求
+1. 开发人员可以通过继承抽象类java.lang.ClassLoader类的方式，实现自己的类加载器，以满足一些特殊的需求
 2. 在JDK1.2之前，在自定义类加载器时，总会去继承ClassLoader类并重写loadClass() 方法，从而实现自定义的类加载类，但是在JDK1.2之后已不再建议用户去覆盖loadclass() 方法，而是建议把自定义的类加载逻辑写在findClass()方法中
 3. 在编写自定义类加载器时，如果没有太过于复杂的需求，可以直接继承URLClassLoader类，这样就可以避免自己去编写findClass()  方法及其获取字节码流的方式，使自定义类加载器编写更加简洁。
 
@@ -511,11 +519,11 @@ public class ClassLoaderTest2 {
 
 ClassLoader类是一个抽象类，其后所有的类加载器都继承自ClassLoader（不包括启动类加载器）
 
-![image-20200705103516138](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507212318.png)
+![image-20211120171436167](README.assets/image-20211120171436167.png)
 
 sun.misc.Launcher 它是一个java虚拟机的入口应用
 
-![image-20200705103636003](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507212334.png)
+![image-20211120164454830](README.assets/image-20211120164454830.png)
 
 **获取ClassLoader的途径**
 
@@ -549,7 +557,7 @@ sun.misc.Launcher 它是一个java虚拟机的入口应用
 
 一个问题，如果我们自定义一个String类，那么类加载器加载的时候，加载的是哪个呢？
 
-![image-20210708092757266](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210708092757266.png)
+![image-20211120172357338](README.assets/image-20211120172357338.png)
 
 ```java
 public class StringTest {
@@ -560,9 +568,15 @@ public class StringTest {
 }
 ```
 
+```bash
+Hello world
+```
+
+输出只有Hello world，所以可以推断出，并没有创建我们自定义的String的对象（静态代码块中的代码没有执行)
+
 点进去后发现
 
-![image-20210708093829275](C:/Users/Echo/AppData/Roaming/Typora/typora-user-images/image-20210708093829275.png)
+![image-20211120172555160](README.assets/image-20211120172555160.png)
 
 用的还是核心库中的String,而非我们自定义的String。
 
@@ -576,7 +590,7 @@ Java虚拟机对class文件采用的是<mark>按需加载</mark>的方式，也�
 - 2）如果父类加载器还存在其父类加载器，则进一步向上委托，依次递归，请求最终将到达顶层的启动类加载器；
 - 3）如果父类加载器可以完成类加载任务，就成功返回，倘若父类加载器无法完成此加载任务，子加载器才会尝试自己去加载，这就是双亲委派模式。
 
-![image-20200705105151258](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507212811.png)
+![image-20211120172642725](README.assets/image-20211120172642725.png)
 
 **举例1**
 
@@ -584,11 +598,35 @@ Java虚拟机对class文件采用的是<mark>按需加载</mark>的方式，也�
 
 要加载com.echo.StringTest类时(我们自己写的类)，线程上下文类加载器（一般是系统类加载器），如果是系统类加载器的话，会向上委托至扩展类加载器，扩展类加载器继续委托至引导类加载器，引导类加载器发现，该类的加载不属于自己的加载范围内，放弃加载，交给扩展类加载器，同样，扩展类加载器发现该类也不属于自己的加载范围内，交给系统类加载器，系统类加载器发现是自己的加载范围，进行加载。如果不是，就按照当前线程上下文类加载器的等级向上搜索
 
+所以，如果在我们自定义的String类中写个main方法
+
+```java
+package java.lang;
+
+public class String {
+    static {
+        System.out.println("自定义的String类的静态代码块");
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Hello");
+    }
+}
+```
+
+```bash
+错误: 在类 java.lang.String 中找不到 main 方法, 请将 main 方法定义为:
+   public static void main(String[] args)
+否则 JavaFX 应用程序类必须扩展javafx.application.Application
+```
+
+就会产生报错，因为到达引导类加载器的时候，加载String，根本就没有main方法
+
 **举例2**
 
 当我们加载jdbc.jar 用于实现数据库连接的时候，首先我们需要知道的是 jdbc.jar是基于SPI接口进行实现的，所以在加载的时候，会进行双亲委派，最终从根加载器中加载 SPI核心类，然后在加载SPI接口类，接着在进行反向委派，通过线程上下文类加载器进行实现类jdbc.jar的加载。
 
-![image-20200705105810107](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210507212827.png)
+![image-20211120172955704](README.assets/image-20211120172955704.png)
 
 **优势**
 

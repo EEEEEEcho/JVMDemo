@@ -8,7 +8,7 @@ public class ClassLoaderTest {
         //获取系统类加载器的上层：扩展类加载器
         ClassLoader extClassLoader = systemClassLoader.getParent();
         System.out.println(extClassLoader); //sun.misc.Launcher$ExtClassLoader@1b6d3586
-        //获取扩展类加载器的上层: 引导类加载器,获取不到
+        //获取扩展类加载器的上层: 引导类加载器,获取不到，因为引导类加载器本身是由C/C++编写的
         ClassLoader bootstrapClassLoader = extClassLoader.getParent();
         System.out.println(bootstrapClassLoader); //null 获取不到
 
