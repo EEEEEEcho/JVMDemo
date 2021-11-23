@@ -35,7 +35,7 @@
 
 #### Java虚拟机栈是什么？
 
-Java虚拟机栈（Java Virtual Machine Stack），早期也叫Java栈。每个线程在创建时都会创建一个虚拟机栈，其内部保存一个个的栈帧（Stack Frame），对应着一次次的Java方法调用，是线程私有的。
+Java虚拟机栈（Java Virtual Machine Stack），早期也叫Java栈。**每个线程在创建时都会创建一个虚拟机栈，其内部保存一个个的栈帧（Stack Frame），对应着一次次的Java方法调用，是线程私有的**。
 
 举个例子：
 
@@ -64,7 +64,7 @@ public class StackTest {
 
 #### 生命周期
 
-生命周期和线程一致
+栈的生命周期和线程一致
 
 #### 作用
 
