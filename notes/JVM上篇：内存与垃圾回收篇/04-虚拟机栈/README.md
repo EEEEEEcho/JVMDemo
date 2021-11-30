@@ -178,7 +178,7 @@ public class StackDeepTest{
 
 每个线程都有自己的栈，栈中的数据都是以<mark>栈帧（Stack Frame）的格式存在</mark>。
 
-在这个线程上正在执行的每个方法都各自对应一个栈帧（Stack Frame）。方法的执行和栈帧是一对一的关系。
+在这个线程上正在执行的每个方法都各自对应一个栈帧（Stack Frame）。**方法的执行和栈帧是一对一的关系**，一个方法的执行就是一个栈帧的入栈，一个方法的执行完成，就对应着一个方法的出栈。
 
 栈帧是一个内存区块，是一个数据集，维系着方法执行过程中的各种数据信息。
 
@@ -574,23 +574,72 @@ main方法的局部变量表分析
 
 ![image-20210812225559290](../../../pic/image-20210812225559290.png)
 
+![image-20211129160404528](README.assets/image-20211129160404528.png)
+
+![image-20211129160621853](README.assets/image-20211129160621853.png)
+
+![image-20211129160642494](README.assets/image-20211129160642494.png)
+
+![image-20211129160700135](README.assets/image-20211129160700135.png)
+
+![image-20211129160823931](README.assets/image-20211129160823931.png)
+
+![image-20211129161722388](README.assets/image-20211129161722388.png)
+
+如果忘了，看P49.
+
+```JAVA
+public void test1(){
+    Date date = new Date();
+    String name = "ech0";
+    String info = test2(date,name);
+    System.out.println(date + name);
+}
+```
+
+如果是类中定义的方法，那么局部变量表中一定有一个this变量
+
+**![image-20211129162426069](README.assets/image-20211129162426069.png)**
+
+
+
 ### 4.3.1. 关于Slot的理解
 
-- 局部变量表，最基本的存储单元是Slot（变量槽）
+- **局部变量表，最基本的存储单元是Slot（变量槽）**
 - 参数值的存放总是在局部变量数组的index0开始，到数组长度-1的索引结束。
 - 局部变量表中存放编译期可知的各种基本数据类型（8种），引用类型（reference），returnAddress类型的变量。
-- 在局部变量表里，32位以内的类型只占用一个slot（包括returnAddress类型），64位的类型（long和double）占用两个slot。
-
+- **在局部变量表里，32位以内的类型只占用一个slot（包括returnAddress类型），64位的类型（long和double）占用两个slot。**
 - byte、short、char 在存储前被转换为int，boolean也被转换为int，0表示false，非0表示true。 
 - JVM会为局部变量表中的每一个Slot都分配一个访问索引，通过这个索引即可成功访问到局部变量表中指定的局部变量值
-
 - 当一个实例方法被调用的时候，它的方法参数和方法体内部定义的局部变量将会<mark>按照顺序被复制</mark>到局部变量表中的每一个slot上
-
 - <mark>如果需要访问局部变量表中一个64bit的局部变量值时，只需要使用前一个索引即可</mark>。（比如：访问long或doub1e类型变量）
 - 如果当前帧是由构造方法或者实例方法创建的，那么<mark>该对象引用this将会存放在index为0的slot处</mark>，其余的参数按照参数表顺序继续排列。
+  ![image-20211129162426069](README.assets/image-20211129162426069.png)
 
 
-![image-20200705212454445](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509190245.png)
+![image-20211129162759028](README.assets/image-20211129162759028.png)
+
+```java
+public void test1(){
+    Date date = new Date();
+    String name = "ech0";
+    String info = test2(date,name);
+    System.out.println(date + name);
+}
+```
+
+![image-20211129163326971](README.assets/image-20211129163326971.png)
+
+```java
+public void test1(){
+    Date date = new Date();
+    String name = "ech0";
+    test2(date,name);
+    System.out.println(date + name);
+}
+```
+
+![image-20211129163404166](README.assets/image-20211129163404166.png)
 
 ### 4.3.2. Slot的重复利用
 
@@ -613,6 +662,24 @@ public class SlotTest {
     }
 }
 ```
+
+```java
+public void test4(){
+    int a = 0;
+    {
+        int b = 0;
+        b = a + 1;
+    }
+    //b 出了作用域就已经挂掉了。但是局部变量表中的槽slot已经开辟了，
+    //所以变量c就会重复利用该槽
+    //变量c会使用之前已经销毁的变量b占据的slot的位置
+    int c = a + 1;
+}
+```
+
+![image-20211129164147050](README.assets/image-20211129164147050.png)
+
+![image-20211129164244313](README.assets/image-20211129164244313.png)
 
 ### 4.3.3. 静态变量与局部变量的对比
 
