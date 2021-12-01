@@ -683,6 +683,16 @@ public void test4(){
 
 ### 4.3.3. 静态变量与局部变量的对比
 
+变量的分类：
+
+- 按照数据类型分：
+  - 基本数据类型
+  - 引用数据类型
+- 按照在类中声明的位置分：
+  - 实例变量：随着对象的创建，会在对空间中分配实例变量空间，并进行默认赋值
+  - 局部变量: 在使用前必须显式赋值，否则编译不通过。
+  - 类变量：linking的prepare阶段：给类变量默认赋值 --> initial阶段：给类变量显式赋值
+
 参数表分配完毕之后，再根据方法体内定义的变量的顺序和作用域分配。
 
 我们知道类变量表有两次初始化的机会，第一次是在“<mark>准备阶段</mark>”，执行系统初始化，对类变量设置零值，另一次则是在“<mark>初始化</mark>”阶段，赋予程序员在代码中定义的初始值。
@@ -730,14 +740,14 @@ public void testAddOperation(){
 ```shell
 public void testAddOperation(); 
     Code:
-    0: bipush 15
-    2: istore_1 
-    3: bipush 8
-    5: istore_2 
-    6:iload_1 
-    7:iload_2 
-    8:iadd
-    9:istore_3 
+    0: bipush 15		# 将常量15加载到操作数栈
+    2: istore_1 		# 将15从操作数栈存储到局部变量表第1个槽里
+    3: bipush 8			# 将常量8加载到操作数栈
+    5: istore_2 		# 将8从操作数栈存储到局部变量表第2个槽里
+    6:iload_1 			# 将局部变量表第1个槽存储的数据压入操作数栈
+    7:iload_2 			# 将局部变量表第2个槽存储的数据压入操作数栈
+    8:iadd				# 操作数栈中的前两个变量相加，并将结果压入操作数栈顶
+    9:istore_3 			# 将操作数栈顶的数据存入局部变量表第3个槽
     10:return
 ```
 
@@ -747,7 +757,7 @@ public void testAddOperation();
 
 每一个操作数栈都会拥有一个明确的栈深度用于存储数值，其所需的最大深度在编译期就定义好了，保存在方法的Code属性中，为max_stack的值。
 
-栈中的任何一个元素都是可以任意的Java数据类型
+栈中的任何一个元素都可以是任意的Java数据类型
 
 - 32bit的类型占用一个栈单位深度
 - 64bit的类型占用两个栈单位深度
@@ -786,21 +796,60 @@ public void testAddoperation();
     10: return
 ```
 
-![image-20200706093131621](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509194808.png)
+![image-20211201162505485](README.assets/image-20211201162505485.png)
 
-![image-20200706093251302](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509194813.png)
+ ![image-20211201162628989](README.assets/image-20211201162628989.png)
 
-![image-20200706093646406](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509194816.png)
+![image-20211201162729871](README.assets/image-20211201162729871.png)
 
-![image-20200706093751711](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509194819.png)
+iadd操作取出栈顶的两个数字8和15，然后交给执行引擎，翻译成机器指令，然后由CPU执行加法，最后将加法后的结果再压入栈顶。
 
-![image-20200706093859191](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509194822.png)
+![image-20211201162918118](README.assets/image-20211201162918118.png)
 
-![image-20200706093921573](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509194824.png)
 
-![image-20200706094046782](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509194827.png)
 
-![image-20200706094109629](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509194829.png)
+带有返回值的
+
+```java
+public int getSum(){
+    int m = 10;
+    int n = 20;
+    int k = m + n;
+    return k;
+}
+public void testGetSum(){
+    //获取上一个栈帧返回的结果，并保存在操作数栈中
+    int i = getSum();
+    int j = 10;
+}
+```
+
+getSum()的字节码:
+
+```bash
+0 bipush 10
+2 istore_1
+3 bipush 20
+5 istore_2
+6 iload_1
+7 iload_2
+8 iadd
+9 istore_3
+10 iload_3
+11 ireturn	#返回int值
+```
+
+testGetSum()的字节码:
+
+```bash
+0 aload_0	# 加载this
+1 invokevirtual #2 <chapter04/OperandStackTest.getSum : ()I>	# 调用this.getSum()
+4 istore_1	# 返回结果存储在局部变量表1号槽
+# 上面三条指令是获取上一个栈帧返回的结果，并保存在操作数栈中
+5 bipush 10
+7 istore_2
+8 return
+```
 
 程序员面试过程中，常见的i++和++i的区别，放到字节码篇章时再介绍。
 
@@ -812,17 +861,43 @@ public void testAddoperation();
 
 ## 4.7. 动态链接（Dynamic Linking）
 
+![image-20211201165259651](README.assets/image-20211201165259651.png)
+
 动态链接、方法返回地址、附加信息 ： 有些地方被称为帧数据区
 
 每一个栈帧内部都包含一个指向<mark>运行时常量池中该栈帧所属方法的引用</mark>。包含这个引用的目的就是为了支持当前方法的代码能够实现动态链接（Dynamic Linking）。比如：invokedynamic指令
 
-在Java源文件被编译到字节码文件中时，所有的变量和方法引用都作为符号引用（Symbolic Reference）保存在class文件的常量池里。比如：描述一个方法调用了另外的其他方法时，就是通过常量池中指向方法的符号引用来表示的，那么<mark>动态链接的作用就是为了将这些符号引用转换为调用方法的直接引用</mark>。
+在Java源文件被编译到字节码文件中时，所有的变量和方法引用都作为符号引用（Symbolic Reference）保存在class文件的常量池里。
+
+```java
+public class DynamicLinkingDemo {
+    int num = 10;
+    public void methodA(){
+        System.out.println("MethodA(),,,,,");
+    }
+    public void methodB(){
+        System.out.println("MethodB()......");
+        methodA();
+        num ++;
+    }
+}
+```
+
+啥是符号引用？
+
+![image-20211201165938225](README.assets/image-20211201165938225.png)
+
+什么是动态链接？
+
+![image-20211201170411262](README.assets/image-20211201170411262.png)
+
+比如：描述一个方法调用了另外的其他方法时，就是通过常量池中指向方法的符号引用来表示的，那么<mark>动态链接的作用就是为了将这些符号引用转换为调用方法的直接引用</mark>。
 
 ![image-20200706101251847](https://gitee.com/moxi159753/LearningNotes/raw/master/JVM/1_内存与垃圾回收篇/5_虚拟机栈/images/image-20200706101251847.png)
 
 为什么需要运行时常量池呢？
 
-常量池的作用：就是为了提供一些符号和常量，便于指令的识别
+常量池的作用：就是为了提供一些符号和常量，便于指令的识别，同时能够保证字节码文件不至于太大。
 
 ## 4.8. 方法的调用：解析与分配
 
