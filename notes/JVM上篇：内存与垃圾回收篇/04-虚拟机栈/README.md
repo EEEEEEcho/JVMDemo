@@ -1015,30 +1015,16 @@ invokespecial表现为早期绑定（静态链接）
 
 ### 4.8.5. 虚方法和非虚方法
 
-如果方法在编译期就确定了具体的调用版本，这个版本在运行时是不可变的。这样的方法称为非虚方法。
+如果方法**在编译期就确定了具体的调用版本**，这个版本在运行时是不可变的。这样的方法称为非虚方法。
 
-静态方法、私有方法、final方法、实例构造器、父类方法都是非虚方法。其他方法称为虚方法。
+**静态方法、私有方法、final方法、实例构造器、父类方法都是非虚方法**。
 
-在类加载的解析阶段就可以进行解析，如下是非虚方法举例：
+**其他方法称为虚方法，编译期间无法确定的方法。**
 
-```java
-class Father{
-    public static void print(String str){
-        System. out. println("father "+str); 
-    }
-    private void show(String str){
-        System. out. println("father"+str);
-    }
-}
-class Son extends Father{
-    public class VirtualMethodTest{
-        public static void main(String[] args){
-            Son.print("coder");
-            //Father fa=new Father();
-            //fa.show("atguigu.com");
-        }
-    }
-```
+子类对象的多态性使用的前提：
+
+- 类的继承关系
+- 方法的重写
 
 虚拟机中提供了以下几条方法调用指令：
 
@@ -1049,20 +1035,157 @@ class Son extends Father{
 - invokevirtual：调用所有虚方法
 - invokeinterface：调用接口方法
 
+```java
+public class Father {
+    public Father(){
+        System.out.println("father的构造器");
+    }
+    public static void showStatic(String str){
+        System.out.println("father的static方法:" + str);
+    }
+    public final void showFinal(){
+        System.out.println("father中的final方法");
+    }
+    public void showCommon(){
+        System.out.println("father中的普通成员方法");
+    }
+}
+class Son extends Father{
+    public Son(){
+        //构造器：非虚方法
+        // invokespecial
+        super();
+    }
+    public Son(int age){
+        //构造器，非虚方法
+        //invokespecial
+        this();
+    }
+    public static void showStatic(String str){
+        System.out.println("son的static方法:" + str);
+    }
+    private void showPrivate(String str){
+        System.out.println("son的private方法:" + str);
+    }
+    public void show(){
+        //静态方法：非虚方法
+        //invokestatic
+        showStatic("son");
+        //静态方法：非虚方法
+        //invokestatic
+        super.showStatic("father");
+        //私有方法：非虚方法
+        //invokespecial
+        showPrivate("son");
+        //显式使用super关键字调用父类方法：非虚方法
+        //invokespecial
+        super.showCommon();
+        //虽然是invokevirtual，但是该方法在父类
+        //是由final关键字修饰的，所以其是非虚方法
+        //invokevirtual
+        showFinal();
+        //显式使用super关键字调用父类方法：非虚方法
+        //invokespecial
+        super.showFinal();
+
+        //虚方法，公共的成员函数
+        //invokevirtual
+        showCommon();
+        //虚方法：公共的成员函数
+        //invokevirtual
+        info();
+        MethodInterface m = null;
+        //虚方法：接口中定义的方法
+        //invokeinterface
+        m.method();
+    }
+    public void info(){
+
+    }
+}
+interface MethodInterface{
+    void method();
+}
+```
+
+show()函数的字节码
+
+```bash
+ 0 ldc #11 <son>
+ 2 invokestatic #12 <chapter04/Son.showStatic : (Ljava/lang/String;)V>
+ 5 ldc #13 <father>
+ 7 invokestatic #14 <chapter04/Father.showStatic : (Ljava/lang/String;)V>
+10 aload_0
+11 ldc #11 <son>
+13 invokespecial #15 <chapter04/Son.showPrivate : (Ljava/lang/String;)V>
+16 aload_0
+17 invokespecial #16 <chapter04/Father.showCommon : ()V>
+20 aload_0
+21 invokevirtual #17 <chapter04/Son.showFinal : ()V>
+24 aload_0
+25 invokespecial #18 <chapter04/Father.showFinal : ()V>
+28 aload_0
+29 invokevirtual #19 <chapter04/Son.showCommon : ()V>
+32 aload_0
+33 invokevirtual #20 <chapter04/Son.info : ()V>
+36 aconst_null
+37 astore_1
+38 aload_1
+39 invokeinterface #21 <chapter04/MethodInterface.method : ()V> count 1
+44 return
+```
+
 #### 动态调用指令
 
 - invokedynamic：动态解析出需要调用的方法，然后执行
 
-前四条指令固化在虚拟机内部，方法的调用执行不可人为干预，而invokedynamic指令则支持由用户确定方法版本。<mark>其中invokestatic指令和invokespecial指令调用的方法称为非虚方法，其余的（fina1修饰的除外）称为虚方法。</mark>
+前四条指令固化在虚拟机内部，方法的调用执行不可人为干预，而invokedynamic指令则支持由用户确定方法版本。<mark>其中invokestatic指令和invokespecial指令调用的方法称为非虚方法，其余的（fina1修饰的除外，final方法的调用也是使用的invokevirtual，但是final修饰的方法是非虚方法）称为虚方法。</mark>
 
 **关于invokednamic指令**
 
 - JVM字节码指令集一直比较稳定，一直到Java7中才增加了一个invokedynamic指令，这是<mark>Java为了实现「动态类型语言」支持而做的一种改进。</mark>
-
 - 但是在Java7中并没有提供直接生成invokedynamic指令的方法，需要借助ASM这种底层字节码工具来产生invokedynamic指令。<mark>直到Java8的Lambda表达式的出现，invokedynamic指令的生成，在Java中才有了直接的生成方式。</mark>
-
 - Java7中增加的动态语言类型支持的本质是对Java虚拟机规范的修改，而不是对Java语言规则的修改，这一块相对来讲比较复杂，增加了虚拟机中的方法调用，最直接的受益者就是运行在Java平台的动态语言的编译器。
 
+```java
+@FunctionalInterface
+interface Func{
+    public boolean func(String str);
+}
+public class LambdaDemo {
+    public void lambda(Func func){
+        return;
+    }
+
+    public static void main(String[] args) {
+        LambdaDemo lambdaDemo = new LambdaDemo();
+        //invokedynamic #4 <func, BootstrapMethods #0>
+        Func func = s -> {
+            return true;
+        };
+        lambdaDemo.lambda(func);
+        lambdaDemo.lambda(s -> {
+            return true;
+        });
+    }
+}
+```
+
+```bash
+ 0 new #2 <chapter04/LambdaDemo>
+ 3 dup
+ 4 invokespecial #3 <chapter04/LambdaDemo.<init> : ()V>
+ 7 astore_1
+ 8 invokedynamic #4 <func, BootstrapMethods #0>
+13 astore_2
+14 aload_1
+15 aload_2
+16 invokevirtual #5 <chapter04/LambdaDemo.lambda : (Lchapter04/Func;)V>
+19 aload_1
+20 invokedynamic #6 <func, BootstrapMethods #1>
+25 invokevirtual #5 <chapter04/LambdaDemo.lambda : (Lchapter04/Func;)V>
+28 return
+```
 
 #### 动态类型语言和静态类型语言
 
@@ -1075,7 +1198,7 @@ class Son extends Father{
 **Java 语言中方法重写的本质：**
 
 1. 找到操作数栈顶的第一个元素所执行的对象的实际类型，记作C。
-2. 如果在类型C中找到与常量中的描述符合简单名称都相符的方法，则进行访问权限校验，如果通过则返回这个方法的直接引用，查找过程结束；如果不通过，则返回java.lang.IllegalAccessError 异常。
+2. 如果在类型C中找到与常量中的描述符和简单名称都相符的方法，则进行访问权限校验，如果通过则返回这个方法的直接引用，查找过程结束；如果不通过，则返回java.lang.IllegalAccessError 异常。
 3. 否则，按照继承关系从下往上依次对C的各个父类进行第2步的搜索和验证过程。
 4. 如果始终没有找到合适的方法，则抛出java.1ang.AbstractMethodsrror异常。
 
@@ -1085,7 +1208,7 @@ class Son extends Father{
 
 ### 4.8.7. 方法的调用：虚方法表
 
-在面向对象的编程中，会很频繁的使用到动态分派，如果在每次动态分派的过程中都要重新在类的方法元数据中搜索合适的目标的话就可能影响到执行效率。<mark>因此，为了提高性能，JVM采用在类的方法区建立一个虚方法表 （virtual method table）（非虚方法不会出现在表中）来实现。使用索引表来代替查找。</mark>
+在面向对象的编程中，会很频繁的使用到动态分派（invokevirtual)，如果在每次动态分派的过程中都要重新在类的方法元数据中搜索合适的目标的话就可能影响到执行效率。<mark>因此，为了提高性能，JVM采用在类的方法区建立一个虚方法表 （virtual method table）（非虚方法不会出现在表中）来实现。使用索引表来代替查找。</mark>
 
 每个类中都有一个虚方法表，表中存放着各个方法的实际入口。
 
@@ -1093,11 +1216,13 @@ class Son extends Father{
 
 虚方法表会在类加载的链接阶段被创建并开始初始化，类的变量初始值准备完成之后，JVM会把该类的方法表也初始化完毕。
 
-举例1：
+虚方法表-举例1：
 
 ![image-20200706144954070](https://gitee.com/moxi159753/LearningNotes/raw/master/JVM/1_内存与垃圾回收篇/5_虚拟机栈/images/image-20200706144954070.png)
 
 举例2：
+
+![image-20220305211420724](README.assets/image-20220305211420724-16464860625181.png)
 
 ```java
 interface Friendly{
@@ -1130,7 +1255,11 @@ class CockerSpaniel extends Dog implements Friendly{
 }
 ```
 
-![image-20210509203351535](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509203352.png)
+![image-20220305211545632](README.assets/image-20220305211545632.png)
+
+![image-20220305211650098](README.assets/image-20220305211650098.png)
+
+![image-20220305211811773](README.assets/image-20220305211811773.png)
 
 ## 4.9. 方法返回地址（return address）
 
@@ -1145,7 +1274,7 @@ class CockerSpaniel extends Dog implements Friendly{
 
 1. 执行引擎遇到任意一个方法返回的字节码指令（return），会有返回值传递给上层的方法调用者，简称<mark>正常完成出口</mark>；
    - 一个方法在正常调用完成之后，究竟需要使用哪一个返回指令，还需要根据方法返回值的实际数据类型而定。
-   - 在字节码指令中，返回指令包含ireturn（当返回值是boolean，byte，char，short和int类型时使用），lreturn（Long类型），freturn（Float类型），dreturn（Double类型），areturn。另外还有一个return指令声明为void的方法，实例初始化方法，类和接口的初始化方法使用。
+   - 在字节码指令中，返回指令包含ireturn（当返回值是boolean，byte，char，short和int类型时使用），lreturn（Long类型），freturn（Float类型），dreturn（Double类型），areturn（引用类型）。另外还有一个return指令声明为void的方法，实例初始化方法（构造器init)，类和接口的初始化方法(clinit)使用。
 2. 在方法执行过程中遇到异常（Exception），并且这个异常没有在方法内进行处理，也就是只要在本方法的异常表中没有搜索到匹配的异常处理器，就会导致方法退出，简称<mark>异常完成出口</mark>。
 
 
@@ -1154,7 +1283,7 @@ class CockerSpaniel extends Dog implements Friendly{
 ```shell
 Exception table:
 from to target type
-4	 16	  19   any
+4	 16	  19   any	#如果4-16行的字节码出现了异常，则按照19行的异常处理字节码处理，异常类型为any
 19	 21	  19   any
 ```
 
@@ -1169,15 +1298,19 @@ from to target type
 ## 4.11. 栈的相关面试题
 
 - 举例栈溢出的情况？（StackOverflowError）
+  - 栈空间不足的情况下出现该异常。
   - 通过 -Xss设置栈的大小
+
 - 调整栈大小，就能保证不出现溢出么？
+  - 理论上只能将栈调大，然后保证栈溢出的问题出现的晚一些
   - 不能保证不溢出
+
 - 分配的栈内存越大越好么？
   - 不是，一定时间内降低了OOM概率，但是会挤占其它的线程空间，因为整个空间是有限的。
 - 垃圾回收是否涉及到虚拟机栈？
-  - 不会
+  - 不会，
 - 方法中定义的局部变量是否线程安全？
-  - 具体问题具体分析。如果对象是在内部产生，并在内部消亡，没有返回到外部，那么它就是线程安全的，反之则是线程不安全的。
+  - 具体问题具体分析。如果对象是在内部产生，并在内部消亡，不是通过形参传递过来的，也没有返回到外部，那么它就是线程安全的，反之则是线程不安全的。
 
 | 运行时数据区 | 是否存在Error | 是否存在GC |
 | :----------- | :------------ | :--------- |
@@ -1185,5 +1318,5 @@ from to target type
 | 虚拟机栈     | 是（SOE）     | 否         |
 | 本地方法栈   | 是            | 否         |
 | 方法区       | 是（OOM）     | 是         |
-| 堆           | 是            | 是         |
+| 堆           | 是（OOM）     | 是         |
 
