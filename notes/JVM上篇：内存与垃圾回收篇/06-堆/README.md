@@ -175,17 +175,57 @@ public class HeapDemo1 {
 
 Java堆区用于存储Java对象实例，那么堆的大小在JVM启动时就已经设定好了，大家可以通过选项"-Xmx"和"-Xms"来进行设置。
 
-- “-Xms"用于表示堆区的起始内存，等价于`-XX:InitialHeapSize`
-- “-Xmx"则用于表示堆区的最大内存，等价于`-XX:MaxHeapSize`
+- “-Xms"用于表示堆区的起始内存(年轻代+ 老年代)，等价于`-XX:InitialHeapSize`
+  - -X 是jvm的运行参数
+  - ms是memory start的前缀缩写
+
+- “-Xmx"则用于表示堆区的最大内存(年轻代 + 老年代)，等价于`-XX:MaxHeapSize`
+  - -X是jvm的运行参数
+  - mx是
+
 
 一旦堆区中的内存大小超过“-Xmx"所指定的最大内存时，将会抛出OutOfMemoryError异常。
 
-通常会将-Xms和-Xmx两个参数配置相同的值，其目的是<mark>为了能够在ava垃圾回收机制清理完堆区后不需要重新分隔计算堆区的大小，从而提高性能。</mark>
+通常会将-Xms和-Xmx两个参数配置相同的值，其目的是<mark>为了能够在ava垃圾回收机制清理完堆区后不需要重新分隔计算堆区的大小，从而提高性能。</mark>为了避免在GC后频繁的去扩容或者降低堆空间内存。
 
 默认情况下
 
-- 初始内存大小：物理电脑内存大小 / 64
-- 最大内存大小：物理电脑内存大小 / 4
+- **初始内存大小：物理电脑内存大小 / 64**
+- **最大内存大小：物理电脑内存大小 / 4**
+
+```java
+public class HeapSpaceInitial {
+    public static void main(String[] args) {
+        //Java虚拟机中的堆内存总量,初始内存
+        long initialMemory = Runtime.getRuntime().totalMemory() / 1024 /1024;
+        //虚拟机试图使用的最大内存量
+        long maxMemory = Runtime.getRuntime().maxMemory() / 1024 /1024;
+
+        System.out.println("-Xms : " + initialMemory + "M");
+        System.out.println("-Xmx : " + maxMemory + "M");
+
+        System.out.println("系统内存大小 : " + initialMemory * 64.0 / 1024 + "G");
+        System.out.println("系统内存大小 : " + maxMemory * 4.0 / 1024 + "G");
+    }
+}
+```
+
+```bash
+-Xms : 256M
+-Xmx : 4082M
+系统内存大小 : 16.0G
+系统内存大小 : 15.9453125G
+```
+
+查看设置的堆大小参数的方式：
+
+1.使用jps和jstat -gc 进程ID    来查看一个jvm进程中的堆内存使用情况,该程序设置的参数-Xms10m -Xmx10m
+
+![image-20220309201621289](README.assets/image-20220309201621289.png)
+
+所以总计一共 （5120 + 5120） / 1024 = 10M
+
+2.使用-XX:+PrintGCDetails
 
 ### 6.2.2. OutOfMemory举例
 
@@ -220,22 +260,61 @@ Exception in thread "main" java.lang.OutofMemoryError: Java heap space
 
 Java堆区进一步细分的话，可以划分为年轻代（YoungGen）和老年代（oldGen）
 
-其中年轻代又可以划分为Eden空间、Survivor0空间和Survivor1空间（有时也叫做from区、to区）
+其中年轻代又可以划分为Eden空间(对象最先创建时放入的位置）、Survivor0空间和Survivor1空间（有时也叫做from区、to区）
 
-![image-20200707075847954](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510105632.png)
+![image-20220309203201088](README.assets/image-20220309203201088.png)
 
 下面这参数开发中一般不会调：
 
-![image-20200707080154039](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510105638.png)
+![image-20220309203511263](README.assets/image-20220309203511263.png)
 
 配置新生代与老年代在堆结构的占比。
 
 - 默认`-XX:NewRatio=2`，表示新生代占1，老年代占2，新生代占整个堆的1/3
 - 可以修改`-XX:NewRatio=4`，表示新生代占1，老年代占4，新生代占整个堆的1/5
 
+```java
+/**
+ * -Xms600m -Xmx600m
+ -NewRatio: 设置新生代与老年代的比例，默认是2即：新生代空间 ：老年代空间 = 1 : 2
+ -NewRatio的默认值也是2
+ */
+public class EdenSurvivorTest {
+    public static void main(String[] args) {
+        System.out.println("来打个酱油~");
+        try {
+            Thread.sleep(10000000);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+![image-20220309205332694](README.assets/image-20220309205332694.png)
+
+也可以通过JPS + Jinfo的方式来看
+
+![image-20220309205725509](README.assets/image-20220309205725509.png)
+
+
+
 在HotSpot中，Eden空间和另外两个survivor空间缺省所占的比例是8：1：1
 
 当然开发人员可以通过选项“`-xx:SurvivorRatio`”调整这个空间比例。比如`-xx:SurvivorRatio=8`
+
+![image-20220309210027121](README.assets/image-20220309210027121.png)
+
+但是在图中可以看到这个比例是6:1:1并非8：1：1这是因为JVM有一个自适应机制，
+
+可以通过参数-XX:-UseAdaptiveSizePolicy来关闭这个自适应机制（暂时用不到），但是这个参数实际没有作用。
+
+想要实现8:1:1 必须显式的设置  -XX:SurvivorRatio=8 
+
+![image-20220309210431908](README.assets/image-20220309210431908.png)
+
+![image-20220309210454719](README.assets/image-20220309210454719.png)
 
 <mark>几乎所有的Java对象都是在Eden区被new出来的。</mark>绝大部分的Java对象的销毁都在新生代进行了。
 
@@ -243,31 +322,52 @@ Java堆区进一步细分的话，可以划分为年轻代（YoungGen）和老�
 
 可以使用选项"`-Xmn`"设置新生代最大内存大小，这个参数一般使用默认值就可以了。
 
-![image-20210510105849497](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510105854.png)
+![image-20220309210606636](README.assets/image-20220309210606636.png)
 
 ## 6.4. 图解对象分配过程
 
 为新对象分配内存是一件非常严谨和复杂的任务，JVM的设计者们不仅需要考虑内存如何分配、在哪里分配等问题，并且由于内存分配算法与内存回收算法密切相关，所以还需要考虑GC执行完内存回收后是否会在内存空间中产生内存碎片。
 
+**常规流程：**
+
 1. new的对象先放伊甸园区。此区有大小限制。
+    ![image-20220309213140826](README.assets/image-20220309213140826.png)
+
 2. 当伊甸园的空间填满时，程序又需要创建对象，JVM的垃圾回收器将对伊甸园区进行垃圾回收（MinorGC），将伊甸园区中的不再被其他对象所引用的对象进行销毁。再加载新的对象放到伊甸园区
-3. 然后将伊甸园中的剩余对象移动到幸存者0区。
-4. 如果再次触发垃圾回收，此时上次幸存下来的放到幸存者0区的，如果没有回收，就会放到幸存者1区。
+    ![image-20220309213526076](README.assets/image-20220309213526076.png)
+
+3. 然后将伊甸园中的剩余对象移动到幸存者0区。(第一次MinorGC时未被清理掉的对象)
+    ![image-20220309214039145](README.assets/image-20220309214039145.png)
+    ![image-20220309214228399](README.assets/image-20220309214228399.png)
+
+4. 如果再次触发垃圾回收，此时上次幸存下来的放到幸存者0区的对象，如果没有回收，就会放到幸存者1区。
+    ![image-20220309214340219](README.assets/image-20220309214340219.png)
+    ![image-20220309214606492](README.assets/image-20220309214606492.png)
+
 5. 如果再次经历垃圾回收，此时会重新放回幸存者0区，接着再去幸存者1区。
+    ![image-20220309214724269](README.assets/image-20220309214724269.png)
+    ![image-20220309214832959](README.assets/image-20220309214832959.png)
+
 6. 啥时候能去养老区呢？可以设置次数。默认是15次。
+   ![image-20220309215108607](README.assets/image-20220309215108607.png)
+   
    - <mark>可以设置参数：`-Xx:MaxTenuringThreshold= N`进行设置</mark>
+   
 7. 在养老区，相对悠闲。当养老区内存不足时，再次触发GC：Major GC，进行养老区的内存清理
+
 8. 若养老区执行了Major GC之后，发现依然无法进行对象的保存，就会产生OOM异常。
 
     ```java
     java.lang.OutofMemoryError: Java heap space
     ```
 
-![第08章_新生代对象分配与回收过程](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510111316.jpg)
+（图中绿色的为未被回收的对象，数字1代表其年龄为1）
+
+![ce3beaa9-3669-4062-862a-25d4ed37ba5f](README.assets/ce3beaa9-3669-4062-862a-25d4ed37ba5f.jpg)
 
 **流程图**
 
-![image-20200707091058346](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510112916.png)
+![8c01eb1d-2af8-4068-b443-e03fbc916321](README.assets/8c01eb1d-2af8-4068-b443-e03fbc916321.png)
 
 **总结**
 
