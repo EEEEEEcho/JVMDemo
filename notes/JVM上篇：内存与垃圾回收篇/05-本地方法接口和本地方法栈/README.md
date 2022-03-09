@@ -20,7 +20,7 @@
 
 本地接口的作用是融合不同的编程语言为Java所用，它的初衷是融合C/C++程序。
 
-![image-20200706164139252](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509205225.png)
+![image-20220307223747087](README.assets/image-20220307223747087.png)
 
 举例
 
@@ -70,7 +70,7 @@ JVM支持着Java语言本身和运行时库，它是Java程序赖以生存的平
 
 它的具体做法是Native Method Stack中登记native方法，在Execution Engine 执行时加载本地方法库。
 
-![image-20200706174708418](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210509205255.png)
+![image-20220307225634611](README.assets/image-20220307225634611.png)
 
 <mark>当某个线程调用一个本地方法时，它就进入了一个全新的并且不再受虚拟机限制的世界。它和虚拟机拥有同样的权限。</mark>
 

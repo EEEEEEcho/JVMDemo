@@ -18,5 +18,6 @@ public class LambdaDemo {
         lambdaDemo.lambda(s -> {
             return true;
         });
+
     }
 }

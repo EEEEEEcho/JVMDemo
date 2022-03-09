@@ -14,7 +14,9 @@
 
 堆针对一个JVM进程来说是唯一的，也就是一个进程只有一个JVM，但是进程包含多个线程，他们是共享同一堆空间的。
 
-![image-20200706195127740](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510105542.png)
+![image-20220308222033851](README.assets/image-20220308222033851.png)
+
+
 
 一个JVM实例只存在一个堆内存，堆也是Java内存管理的核心区域。
 
@@ -22,21 +24,94 @@ Java堆区在JVM启动的时候即被创建，其空间大小也就确定了。�
 
 - 堆内存的大小是可以调节的。
 
+  - ```java
+    /**
+    	最小堆内存 10m，最大堆内存10m
+     * -Xms10m -Xmx10m 
+     */
+    public class HeapDemo1 {
+        public static void main(String[] args) {
+            System.out.println("start...");
+            try {
+                TimeUnit.SECONDS.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("end...");
+        }
+    }
+    ```
+
+  - ```java
+    /**
+     最小堆内存20m，最大堆内存20m
+     * -Xms20m -Xmx20m
+     */
+    public class HeapDemo2 {
+        public static void main(String[] args) {
+            System.out.println("start...");
+            try {
+                TimeUnit.SECONDS.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.println("end...");
+        }
+    }
+    
+    ```
+
+  - 上述两个程序跑起来之后，可以在VisualVM中看到相应设置的堆大小
+    ![image-20220308223904623](README.assets/image-20220308223904623.png)
+
+    ![image-20220308223930333](README.assets/image-20220308223930333.png)
+
+
 《Java虚拟机规范》规定，堆可以处于物理上不连续的内存空间中，但在逻辑上它应该被视为连续的。
 
-所有的线程共享Java堆，在这里还可以划分线程私有的缓冲区（Thread Local Allocation Buffer，TLAB）。
+**所有的线程共享Java堆，在这里还可以划分线程私有的缓冲区（Thread Local Allocation Buffer，TLAB），传说中的ThreadLocal**。
 
-《Java虚拟机规范》中对Java堆的描述是：所有的对象实例以及数组都应当在运行时分配在堆上。（`The heap is the run-time data area from which memory for all class instances and arrays is allocated`）
+《Java虚拟机规范》中对Java堆的描述是：所有的对象实例以及数组都应当在运行时分配在堆上。（`The heap is the run-time data area from which memory for all class instances and arrays is allocated`）,但是实际上应该是”几乎“所有的对象实例都在这里分配内存。
 
 数组和对象可能永远不会存储在栈上，因为栈帧中保存引用，这个引用指向对象或者数组在堆中的位置。
 
-在方法结束后，堆中的对象不会马上被移除，仅仅在垃圾收集的时候才会被移除。
+在方法结束后，堆中的对象不会马上被移除，仅仅在**垃圾收集的时候**才会被移除。
 
 堆，是GC（Garbage Collection，垃圾收集器）执行垃圾回收的重点区域。
 
-![image-20200706201904057](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510105611.png)
+![image-20220308224904434](README.assets/image-20220308224904434.png)
+
+```java
+public class SimpleHeap {
+    private int id;
+
+    public SimpleHeap(int id){
+        this.id = id;
+    }
+
+    public void show(){
+        System.out.println("My ID is : " + id);
+    }
+
+    public static void main(String[] args) {
+        SimpleHeap s1 = new SimpleHeap(1);
+        SimpleHeap s2 = new SimpleHeap(2);
+
+        int[] arr = new int[10];
+        Object[] arr1 = new Object[10];
+    }
+}
+```
+
+![image-20220308225506721](README.assets/image-20220308225506721.png)
+
+执行如上图的这些红框指令时，就会在堆上分配空间。
+
+GC在清理大内存，和频繁清理时会成为程序的瓶颈。
 
 ### 6.1.1. 堆内存细分
+
+现代垃圾收集器大部分都基于分代收集理论设计，堆空间细分为：
 
 Java 7及之前堆内存逻辑上分为三部分：新生区+养老区+<mark>永久区</mark>
 
@@ -54,11 +129,45 @@ Java 8及之后堆内存逻辑上分为三部分：新生区+养老区+<mark>元
 
 ### 6.1.2. 堆空间内部结构（JDK7）
 
-![image-20200706203419496](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510105619.png)
+![image-20220308225948864](README.assets/image-20220308225948864.png)
 
 ### 6.1.3. 堆空间内部结构（JDK8）
 
-![image-20200706203835403](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510105627.png)
+![image-20220308230009590](README.assets/image-20220308230009590.png)
+
+```java
+public class HeapDemo1 {
+    public static void main(String[] args) {
+        System.out.println("start...");
+        try {
+            TimeUnit.SECONDS.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("end...");
+    }
+}
+```
+
+![image-20220308230618610](README.assets/image-20220308230618610.png)
+
+对SimpleHeap进行参数设置，
+
+![image-20220308230816159](README.assets/image-20220308230816159.png)
+
+其中-XX:+PrintGCDetails参数可以在启动程序时，打印堆中内存的使用情况
+
+```bash
+[0.003s][warning][gc] -XX:+PrintGCDetails is deprecated. Will use -Xlog:gc* instead.
+[0.031s][info   ][gc,heap] Heap region size: 1M
+[0.033s][info   ][gc     ] Using G1
+[0.033s][info   ][gc,heap,coops] Heap address: 0x00000000ff600000, size: 10 MB, Compressed Oops mode: 32-bit
+[0.173s][info   ][gc,heap,exit ] Heap
+[0.173s][info   ][gc,heap,exit ]  garbage-first heap   total 10240K, used 1024K [0x00000000ff600000, 0x0000000100000000)
+[0.173s][info   ][gc,heap,exit ]   region size 1024K, 2 young (2048K), 0 survivors (0K)
+[0.173s][info   ][gc,heap,exit ]  Metaspace       used 6215K, capacity 6319K, committed 6528K, reserved 1056768K
+[0.173s][info   ][gc,heap,exit ]   class space    used 540K, capacity 570K, committed 640K, reserved 1048576
+```
 
 ## 6.2. 设置堆内存大小与OOM
 
