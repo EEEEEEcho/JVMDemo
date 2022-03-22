@@ -582,7 +582,7 @@ Hello world
 
 **由此引出：**
 
-Java虚拟机对class文件采用的是<mark>按需加载</mark>的方式，也就是说当需要使用该类时才会将它的class文件加载到内存生成class对象。而且加载某个类的class文件时，Java虚拟机采用的是<mark>双亲委派模式</mark>，即把请求交由父类处理，它是一种任务委派模式。
+J**ava虚拟机对class文件采用的是<mark>按需加载</mark>的方式，也就是说当需要使用该类时才会将它的class文件加载到内存生成class对象**。而且加载某个类的class文件时，Java虚拟机采用的是<mark>双亲委派模式</mark>，即把请求交由父类处理，它是一种任务委派模式。
 
 **工作原理**
 
@@ -645,8 +645,8 @@ public class String {
 
 在JVM中表示两个class对象是否为同一个类存在两个必要条件：
 
-- 类的完整类名必须一致，包括包名。
-- 加载这个类的ClassLoader（指ClassLoader实例对象）必须相同。
+- **类的完整类名必须一致，包括包名。**
+- **加载这个类的ClassLoader（指ClassLoader实例对象）必须相同。**
 
 换句话说，在JVM中，即使这两个类对象（class对象）来源同一个Class文件，被同一个虚拟机所加载，但只要加载它们的ClassLoader实例对象不同，那么这两个类对象也是不相等的。
 

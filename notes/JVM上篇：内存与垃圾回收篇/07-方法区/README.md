@@ -10,58 +10,64 @@
 
 # 7. 方法区
 
-![image-20210510141044840](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510141048.png)
+运行时数据区结构图
 
-从线程共享与否的角度来看
+![772b8c1a-207d-424e-a140-3a75c2252bef](README.assets/772b8c1a-207d-424e-a140-3a75c2252bef-16479533096261.png)
 
-![image-20210510141131860](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510141133.png)
+从线程共享与否的角度来看（方法区具体的实现是元空间）
+
+![356e9e64-a703-4338-bfad-ef5e9361422e](README.assets/356e9e64-a703-4338-bfad-ef5e9361422e.png)
 
 ## 7.1. 栈、堆、方法区的交互关系
 
-![image-20200708094747667](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510141516.png)
+![637e9597-7159-4443-8e77-1dbb5f588cb5](README.assets/637e9597-7159-4443-8e77-1dbb5f588cb5.png)
 
 ## 7.2. 方法区的理解
 
 官方文档：[Chapter 2. The Structure of the Java Virtual Machine (oracle.com)](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.5.4)
 
-![image-20210510195446194](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510195447.png)
+![0f073338-0a62-4887-a92f-13463b5124fa](README.assets/0f073338-0a62-4887-a92f-13463b5124fa.png)
 
 ### 7.2.1. 方法区在哪里？
 
-《Java虚拟机规范》中明确说明：“尽管所有的方法区在逻辑上是属于堆的一部分，但一些简单的实现可能不会选择去进行垃圾收集或者进行压缩。”但对于HotSpotJVM而言，方法区还有一个别名叫做Non-Heap（非堆），目的就是要和堆分开。
+《Java虚拟机规范》中明确说明：“尽管所有的方法区**在逻辑上是属于堆的一部分**，但一些简单的实现可能不会选择去进行垃圾收集或者进行压缩。”但对于HotSpotJVM而言，方法区还有一个别名叫做Non-Heap（非堆），目的就是要和堆分开。
 
 所以，<mark>方法区看作是一块独立于Java堆的内存空间</mark>。
 
-![image-20200708095853544](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510195403.png)
+![dec8bf65-bd7f-4072-9e38-8ace3e2e77e9](README.assets/dec8bf65-bd7f-4072-9e38-8ace3e2e77e9.png)
+
+
 
 ### 7.2.2. 方法区的基本理解
 
 - 方法区（Method Area）与Java堆一样，是各个线程共享的内存区域。
 - 方法区在JVM启动的时候被创建，并且它的实际的物理内存空间中和Java堆区一样都可以是不连续的。
 - 方法区的大小，跟堆空间一样，可以选择固定大小或者可扩展。
-- 方法区的大小决定了系统可以保存多少个类，如果系统定义了太多的类，导致方法区溢出，虚拟机同样会抛出内存溢出错误：`java.lang.OutOfMemoryError: PermGen space` 或者`java.lang.OutOfMemoryError: Metaspace`
-  - <mark>加载大量的第三方的jar包；Tomcat部署的工程过多（30~50个）；大量动态的生成反射类</mark>
+- 方法区的大小决定了系统可以保存多少个类，如果系统定义了太多的类，导致方法区溢出，虚拟机同样会抛出内存溢出错误：`java.lang.OutOfMemoryError: PermGen space` 或者`java.lang.OutOfMemoryError: Metaspace`  
+  - <mark>加载大量的第三方的jar包；Tomcat部署的工程过多（30~50个）；大量动态的生成反射类都会产生方法区的溢出</mark>
 - 关闭JVM就会释放这个区域的内存。
 
 ### 7.2.3. HotSpot中方法区的演进
 
 在jdk7及以前，习惯上把方法区，称为永久代。jdk8开始，使用元空间取代了永久代。
 
-![image-20210510142516373](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510142517.png)
+![image-20220322211143778](README.assets/image-20220322211143778.png)
 
 本质上，方法区和永久代并不等价。仅是对hotspot而言的。《Java虚拟机规范》对如何实现方法区，不做统一要求。例如：BEA JRockit / IBM J9 中不存在永久代的概念。
 
 现在来看，当年使用永久代，不是好的idea。导致Java程序更容易OOM（超过`-XX:MaxPermsize`上限）
 
-![image-20210510142656677](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510142658.png)
+![image-20220322212132220](README.assets/image-20220322212132220.png)
 
 而到了JDK8，终于完全废弃了永久代的概念，改用与JRockit、J9一样在本地内存中实现的元空间（Metaspace）来代替
 
-![image-20200708103055914](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510142722.png)
+![image-20220322212153745](README.assets/image-20220322212153745.png)
 
 元空间的本质和永久代类似，都是对JVM规范中方法区的实现。不过元空间与永久代最大的区别在于：<mark>元空间不在虚拟机设置的内存中，而是使用本地内存</mark>
 
-永久代、元空间二者并不只是名字变了，内部结构也调整了
+永久代、元空间二者并不只是名字变了，内部结构也调整了。
+
+方法区是《Java虚拟机规范》中规定要实现的一个数据存储的地方，可以理解为是一个“接口”，在JDK7之前使用的是永久代来实现的这个接口，但是这个永久代使用的是JVM的内存，实现并不好。在JDK8之后采用的是元空间来实现的这个接口，使用的是机器的直接内存。
 
 根据《Java虚拟机规范》的规定，如果方法区无法满足新的内存分配需求时，将抛出OOM异常
 
@@ -77,26 +83,45 @@
 - <mark>通过`-XX:MaxPermsize`来设定永久代最大可分配空间。32位机器默认是64M，64位机器模式是82M</mark>
 - 当JVM加载的类信息容量超过了这个值，会报异常`OutOfMemoryError:PermGen space`。
 
-![image-20200708111756800](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510195521.png)
+![image-20220322212643090](README.assets/image-20220322212643090.png)
 
 **JDK8以后**
 
 - 元数据区大小可以使用参数 `-XX:MetaspaceSize` 和 `-XX:MaxMetaspaceSize`指定
+
 - 默认值依赖于平台。windows下，`-XX:MetaspaceSize=21M -XX:MaxMetaspaceSize=-1//即没有限制`。
+
+  ```java
+  /**
+   * 测试设置方法区大小参数的默认值
+   * JDK8及以后：
+   * -XX:MetaspaceSize=100m -XX:MaxMetaspaceSize=100m
+   */
+  public class MetaAreaInfo {
+      public static void main(String[] args) throws InterruptedException {
+          TimeUnit.SECONDS.sleep(10000000);
+      }
+  }
+  ```
+
+  ![image-20220322213540174](README.assets/image-20220322213540174.png)
+
 - 与永久代不同，如果不指定大小，默认情况下，虚拟机会耗尽所有的可用系统内存。如果元数据区发生溢出，虚拟机一样会抛出异常`OutOfMemoryError:Metaspace`
-- `-XX:MetaspaceSize`：设置初始的元空间大小。对于一个64位的服务器端JVM来说，其默认的`-XX:MetaspaceSize`值为21MB。这就是初始的高水位线，一旦触及这个水位线，Full GC将会被触发并卸载没用的类（即这些类对应的类加载器不再存活），然后这个高水位线将会重置。新的高水位线的值取决于GC后释放了多少元空间。如果释放的空间不足，那么在不超过`MaxMetaspaceSize`时，适当提高该值。如果释放空间过多，则适当降低该值。
+
+- `-XX:MetaspaceSize`：设置初始的元空间大小。对于一个64位的服务器端JVM来说，其默认的`-XX:MetaspaceSize`值为21MB。这就是初始的高水位线，一旦触及这个水位线，超出21M进行FullGC，Full GC将会被触发并卸载没用的类（即这些类对应的类加载器不再存活），然后这个高水位线将会重置。新的高水位线的值取决于GC后释放了多少元空间。如果释放的空间不足，那么在不超过`MaxMetaspaceSize`时，适当提高该值。如果释放空间过多，则适当降低该值。
+
 - 如果初始化的高水位线设置过低，上述高水位线调整情况会发生很多次。通过垃圾回收器的日志可以观察到Full GC多次调用。为了避免频繁地GC，建议将`-XX:MetaspaceSize`设置为一个相对较高的值。
 
 **举例1：《深入理解Java虚拟机》的例子**
 
-![image-20210510143959924](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510144001.png)
+![image-20220322213934089](README.assets/image-20220322213934089.png)
 
 **举例2**
 
 ```java
 /**
  * jdk8中：
- * -XX:MetaspaceSize=10m-XX:MaxMetaspaceSize=10m
+ * -XX:MetaspaceSize=10m -XX:MaxMetaspaceSize=10m
  * jdk6中：
  * -XX:PermSize=10m-XX:MaxPermSize=10m
  */
@@ -123,9 +148,26 @@ public class OOMTest extends ClassLoader{
 }
 ```
 
+正常执行
+
+```bash
+10000
+```
+
+使用参数限制元空间的大小为10M之后
+
+```bash
+3331
+Exception in thread "main" java.lang.OutOfMemoryError: Compressed class space
+	at java.lang.ClassLoader.defineClass1(Native Method)
+	at java.lang.ClassLoader.defineClass(ClassLoader.java:756)
+	at java.lang.ClassLoader.defineClass(ClassLoader.java:635)
+	at chapter07.MethodAreaOOMTest.main(MethodAreaOOMTest.java:20)
+```
+
 ### 7.3.2. 如何解决这些OOM
 
-1. 要解决OOM异常或heap space的异常，一般的手段是首先通过内存映像分析工具（如Eclipse Memory Analyzer）对dump出来的堆转储快照进行分析，重点是确认内存中的对象是否是必要的，也就是要先分清楚到底是出现了内存泄漏（Memory Leak）还是内存溢出（Memory Overflow）
+1. 要解决OOM异常或heap space的异常，一般的手段是首先通过内存映像分析工具（如Eclipse Memory Analyzer）对dump出来的堆转储快照进行分析，重点是确认内存中的对象是否是必要的，也就是要先分清楚到底是出现了内存泄漏（Memory Leak,类似于僵尸进程，就是该对象不会使用了，但是一直有引用指向它，没办法回收）还是内存溢出（Memory Overflow）
 
 2. 如果是内存泄漏，可进一步通过工具查看泄漏对象到GC Roots的引用链。于是就能找到泄漏对象是通过怎样的路径与GCRoots相关联并导致垃圾收集器无法自动回收它们的。掌握了泄漏对象的类型信息，以及GCRoots引用链的信息，就可以比较准确地定位出泄漏代码的位置。
 
@@ -133,7 +175,9 @@ public class OOMTest extends ClassLoader{
 
 ## 7.4. 方法区的内部结构
 
-![image-20200708161728320](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510144845.png)
+![117de0e1-bd70-4935-9241-724e7a9a8320](README.assets/117de0e1-bd70-4935-9241-724e7a9a8320.png)
+
+
 
 ### 7.4.1. 方法区（Method Area）存储什么？
 

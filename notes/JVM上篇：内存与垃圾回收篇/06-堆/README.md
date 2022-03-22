@@ -374,6 +374,29 @@ public class EdenSurvivorTest {
 - <mark>针对幸存者s0，s1区的总结：复制之后有交换，谁空谁是to</mark>
 - <mark>关于垃圾回收：频繁在新生区收集，很少在老年代收集，几乎不再永久代和元空间进行收集</mark>
 
+```java
+public class HeapInstanceTest {
+    byte[] buffer = new byte[new Random().nextInt(1024 * 200)];
+    public static void main(String[] args) {
+        ArrayList<HeapInstanceTest> list = new ArrayList<>();
+        while (true){
+            list.add(new HeapInstanceTest());
+            try {
+                TimeUnit.MILLISECONDS.sleep(10);
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+**注意，这个图片写错了，应该将图中所有的Major GC  替换为 Minor GC**
+![image-20220310221747145](README.assets/image-20220310221747145.png)
+
+
+
 **常用调优工具（在JVM下篇：性能监控与调优篇会详细介绍）**
 
 - JDK命令行
@@ -385,14 +408,14 @@ public class EdenSurvivorTest {
 - GCViewer
 - GC Easy
 
-## 6.5. Minor GC，MajorGC、Full GC
+## 6.5. Minor GC(Young GC)，Major GC(Old GC)、Full GC
 
-JVM在进行GC时，并非每次都对上面三个内存区域一起回收的，大部分时候回收的都是指新生代。
+JVM在进行GC时，并非每次都对上面三个内存区域（新生代、老年代、方法区）一起回收的，大部分时候回收的都是指新生代。
 
 针对Hotspot VM的实现，它里面的GC按照回收区域又分为两大种类型：一种是部分收集（Partial GC），一种是整堆收集（FullGC）
 
 - 部分收集：不是完整收集整个Java堆的垃圾收集。其中又分为：
-  - 新生代收集（Minor GC / Young GC）：只是新生代的垃圾收集
+  - 新生代收集（Minor GC / Young GC）：只是新生代（Eden,S0,S1)的垃圾收集
   - 老年代收集（Major GC / Old GC）：只是老年代的圾收集。
     - 目前，只有CMSGC会有单独收集老年代的行为。
     - <mark>注意，很多时候Major GC会和Full GC混淆使用，需要具体分辨是老年代回收还是整堆回收。</mark>
@@ -405,14 +428,13 @@ JVM在进行GC时，并非每次都对上面三个内存区域一起回收的，
 
 ### 年轻代GC（Minor GC）触发机制
 
-- 当年轻代空间不足时，就会触发MinorGC，这里的年轻代满指的是Eden代满，Survivor满不会引发GC。（每次Minor GC会清理年轻代的内存。）
+- 当年轻代空间不足时，就会触发MinorGC，这里的**年轻代满指的是Eden代满**，Survivor满不会引发GC。（每次Minor GC会清理年轻代(**Eden + s0 + s1**)的内存。）
 
 - 因为<mark>Java对象大多都具备朝生夕灭的特性</mark>.，所以Minor GC非常频繁，一般回收速度也比较快。这一定义既清晰又易于理解。
 
-- Minor GC会引发STW，暂停其它用户的线程，等垃圾回收结束，用户线程才恢复运行
+- **Minor GC会引发STW**，暂停其它用户的线程，等垃圾回收结束，用户线程才恢复运行
 
-
-![image-20200707095606813](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510112924.png)
+![image-20220310224758219](README.assets/image-20220310224758219.png)
 
 ### 老年代GC（Major GC / Full GC）触发机制
 
@@ -420,7 +442,7 @@ JVM在进行GC时，并非每次都对上面三个内存区域一起回收的，
 
 - 出现了Major Gc，经常会伴随至少一次的Minor GC（但非绝对的，在Paralle1 Scavenge收集器的收集策略里就有直接进行MajorGC的策略选择过程）
   - 也就是在老年代空间不足时，会先尝试触发Minor Gc。如果之后空间还不足，则触发Major GC
-- Major GC的速度一般会比Minor GC慢10倍以上，STW的时间更长
+- **Major GC**的速度一般会比Minor GC慢10倍以上，**STW的时间更长**
 - 如果Major GC后，内存还不足，就报OOM了
 
 ### Full GC触发机制（后面细讲）：
@@ -444,11 +466,11 @@ JVM在进行GC时，并非每次都对上面三个内存区域一起回收的，
 - 新生代：有Eden、两块大小相同的survivor（又称为from/to，s0/s1）构成，to总为空。 
 - 老年代：存放新生代中经历多次GC仍然存活的对象。
 
-![image-20200707101511025](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510113449.png)
+![image-20220315200616261](README.assets/image-20220315200616261.png)
 
 其实不分代完全可以，分代的唯一理由就是优化GC性能。如果没有分代，那所有的对象都在一块，就如同把一个学校的人都关在一个教室。GC的时候要找到哪些对象没用，这样就会对堆的所有区域进行扫描。而很多对象都是朝生夕死的，如果分代的话，把新创建的对象放到某一地方，当GC的时候先把这块存储“朝生夕死”对象的区域进行回收，这样就会腾出很大的空间出来。
 
-![image-20200707101543871](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510113454.png)
+![image-20220315200644309](README.assets/image-20220315200644309.png)
 
 ## 6.7. 内存分配策略
 
@@ -459,9 +481,29 @@ JVM在进行GC时，并非每次都对上面三个内存区域一起回收的，
 针对不同年龄段的对象分配原则如下所示：
 
 - 优先分配到Eden
+
 - 大对象直接分配到老年代（尽量避免程序中出现过多的大对象）
-- 长期存活的对象分配到老年代
-- 动态对象年龄判断：如果survivor区中相同年龄的所有对象大小的总和大于Survivor空间的一半，年龄大于或等于该年龄的对象可以直接进入老年代，无须等到`MaxTenuringThreshold`中要求的年龄。
+
+  ```java
+  /**
+   * 测试:大对象直接进入老年代
+   * -Xms60m -Xmx60m -XX:NewRatio=2 -XX:SurvivorRatio=8 -XX:+PrintGCDetails
+   * 设置新生代和老年代的比例为1:2,设置Eden区和Survivor区的比例为8:1:1
+   * [16m(eden),2m(survivor0),2m(survivor1)][40m (old)]
+   */
+  public class YoungOldAreaTest {
+      public static void main(String[] args) {
+          byte[] bytes = new byte[1024 * 1024 * 20];  //20M
+      }
+  }
+  ```
+
+  ![image-20220315203019344](README.assets/image-20220315203019344.png)
+
+- 长期存活的对象分配到老年代，超过阈值16的
+
+- 动态对象年龄判断：如果survivor区中**相同年龄的所有对象大小的总和大于Survivor空间的一半**，年龄大于或等于该年龄的对象可以直接进入老年代，无须等到`MaxTenuringThreshold`中要求的年龄。
+
 - 空间分配担保： `-XX:HandlePromotionFailure`
 
 ## 6.8. 为对象分配内存：TLAB
@@ -484,19 +526,19 @@ JVM在进行GC时，并非每次都对上面三个内存区域一起回收的，
 - 据我所知所有OpenJDK衍生出来的JVM都提供了TLAB的设计。
 
 
-![image-20210510114110526](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510114112.png)
+![image-20220315203304908](README.assets/image-20220315203304908.png)
 
 ### 6.8.3. TLAB的再说明
 
 - 尽管不是所有的对象实例都能够在TLAB中成功分配内存，但<mark>JVM确实是将TLAB作为内存分配的首选</mark>。
-- 在程序中，开发人员可以通过选项“`-XX:UseTLAB`”设置是否开启TLAB空间。
+- 在程序中，开发人员可以通过选项“`-XX:UseTLAB`”设置是否开启TLAB空间,默认情况下是开启的。
 
 - 默认情况下，TLAB空间的内存非常小，<mark>仅占有整个Eden空间的1%</mark>，当然我们可以通过选项 “`-XX:TLABWasteTargetPercent`” 设置TLAB空间所占用Eden空间的百分比大小。
 
 - 一旦对象在TLAB空间分配内存失败时，JVM就会尝试着通过使用加锁机制确保数据操作的原子性，从而直接在Eden空间中分配内存。
 
 
-![image-20200707104253530](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510114343.png)
+![image-20220315203430776](README.assets/image-20220315203430776.png)
 
 ## 6.9. 小结：堆空间的参数设置
 
@@ -511,17 +553,20 @@ JVM在进行GC时，并非每次都对上面三个内存区域一起回收的，
 -Xmn  //设置新生代的大小。（初始值及最大值）
 -XX:NewRatio  //配置新生代与老年代在堆结构的占比
 -XX:SurvivorRatio  //设置新生代中Eden和S0/S1空间的比例
+//这里如果Eden区特别大，而s0和s1设置的特别小，那么就会出现当某次Minor GC时，s0和s1不够用的情况，不够用了，未回收的对象就会直接放到老年代，从而使Minor GC失去了意义。
 -XX:MaxTenuringThreshold  //设置新生代垃圾的最大年龄
 -XX:+PrintGCDetails //输出详细的GC处理日志
 //打印gc简要信息：①-Xx：+PrintGC ② - verbose:gc
 -XX:HandlePromotionFalilure：//是否设置空间分配担保
 ```
 
-在发生Minor GC之前，虚拟机会<mark>检查老年代最大可用的连续空间是否大于新生代所有对象的总空间</mark>。
+-XX:HandlePromotionFalilure  解释：
+
+在发生Minor GC之前，虚拟机会<mark>检查老年代最大可用的连续空间是否大于新生代所有对象的总空间</mark>，因为最坏的情况是新生代的所有对象都进入老年代。
 
 - 如果大于，则此次Minor GC是安全的
 - 如果小于，则虚拟机会查看`-XX:HandlePromotionFailure`设置值是否允担保失败。
-  - 如果`HandlePromotionFailure=true`，那么会继续检查老年代最大可用连续空间是否大于历次晋升到老年代的对象的平均大小。
+  - 如果`HandlePromotionFailure=true`，那么会继续检查老年代最大可用连续空间是否大于**历次**晋升到老年代的对象的**平均大小**。
     - 如果大于，则尝试进行一次Minor GC，但这次Minor GC依然是有风险的；
     - 如果小于，则改为进行一次Full GC。
   - 如果`HandlePromotionFailure=false`，则改为进行一次Full Gc。
@@ -558,17 +603,19 @@ public void my_method() {
     V v = new V();
     // use v
     // ....
+    //该对象没有逃逸
     v = null;
 }
 ```
 
-没有发生逃逸的对象，则可以分配到栈上，随着方法执行的结束，栈空间就被移除，每个栈里面包含了很多栈帧
+没有发生逃逸的对象，则可以分配到栈上，随着方法执行的结束，栈空间就被移除，该对象占用的内存也就随着栈空间的移除而移除了，每个栈里面包含了很多栈帧
 
 ```java
 public static StringBuffer createStringBuffer(String s1, String s2) {
     StringBuffer sb = new StringBuffer();
     sb.append(s1);
     sb.append(s2);
+    //发生了逃逸，这个sb可能被返回给其他的方法使用
     return sb;
 }
 ```
@@ -588,35 +635,31 @@ public static String createStringBuffer(String s1, String s2) {
 
 ```java
 public class EscapeAnalysis {
-
     public EscapeAnalysis obj;
 
     /**
-     * 方法返回EscapeAnalysis对象，发生逃逸
-     * @return
+     * 快速判断是否发生逃逸：
+     * 检查new出来的对象实体是否有可能在方法外部被调用
      */
-    public EscapeAnalysis getInstance() {
+
+    //方法返回了EscapeAnalysis对象，发生了逃逸
+    public EscapeAnalysis getInstance(){
         return obj == null ? new EscapeAnalysis() : obj;
     }
 
-    /**
-     * 为成员属性赋值，发生逃逸
-     */
+    //为成员属性赋值，发生了逃逸
     public void setObj() {
         this.obj = new EscapeAnalysis();
+        //如果当前obj的声明为static，仍然会发生逃逸
     }
 
-    /**
-     * 对象的作用于仅在当前方法中有效，没有发生逃逸
-     */
-    public void useEscapeAnalysis() {
+    //虽然new出来了一个对象，但是该对象的作用域，仅在当前方法中有效，没有发生逃逸
+    public void useEscapeAnalysis(){
         EscapeAnalysis e = new EscapeAnalysis();
     }
 
-    /**
-     * 引用成员变量的值，发生逃逸
-     */
-    public void useEscapeAnalysis2() {
+    //引用成员变量的值，发生逃逸，因为成员变量对象的实体在这里被引用了
+    public void useEscapeAnalysis1(){
         EscapeAnalysis e = getInstance();
     }
 }
@@ -646,6 +689,66 @@ public class EscapeAnalysis {
 #### 栈上分配
 
 JIT编译器在编译期间根据逃逸分析的结果，发现如果一个对象并没有逃逸出方法的话，就可能被优化成栈上分配。分配完成后，继续在调用栈内执行，最后线程结束，栈空间被回收，局部变量对象也被回收。这样就无须进行垃圾回收了。
+
+**未开启逃逸分析的情况**
+
+```java
+/**
+ * 栈上分配测试
+ * 先关闭逃逸分析
+ * -Xmx1G -Xmx1G -XX:-DoEscapeAnalysis -XX:+PrintGCDetails
+ *
+ */
+public class StackAllocation {
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
+        //创建10000000个对象
+        for (int i = 0; i < 10000000; i++) {
+            alloc();
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("花费的时间为： " + (end - start) + " ms");
+
+
+        try {
+            TimeUnit.SECONDS.sleep(100000);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    public static void alloc(){
+        //这里没有发生逃逸，会采取栈上分配的策略
+        User user = new User();
+    }
+    static class User{
+
+    }
+}
+```
+
+```java
+[GC (Allocation Failure) [PSYoungGen: 65536K->728K(76288K)] 65536K->736K(251392K), 0.0017503 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+[GC (Allocation Failure) [PSYoungGen: 66264K->712K(141824K)] 66272K->720K(316928K), 0.0008467 secs] [Times: user=0.00 sys=0.00, real=0.00 secs] 
+花费的时间为： 70 ms
+
+```
+
+![image-20220321232039880](README.assets/image-20220321232039880.png)
+
+**开启逃逸分析**
+
+```java
+-Xmx1G -Xmx1G -XX:+DoEscapeAnalysis -XX:+PrintGCDetails
+```
+
+```bash
+花费的时间为： 8 ms
+```
+
+这里因为开启了逃逸分析，对象的分配都发生在栈上，所以也不会打印出GCDetails
+
+![image-20220321232313908](README.assets/image-20220321232313908.png)
 
 **常见的栈上分配的场景**
 
