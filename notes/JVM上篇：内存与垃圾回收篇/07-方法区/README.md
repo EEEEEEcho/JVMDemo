@@ -41,7 +41,7 @@
 ### 7.2.2. 方法区的基本理解
 
 - 方法区（Method Area）与Java堆一样，是各个线程共享的内存区域。
-- 方法区在JVM启动的时候被创建，并且它的实际的物理内存空间中和Java堆区一样都可以是不连续的。
+- 方法区在JVM启动的时候被创建，并且**它的实际的物理内存空间中和Java堆区一样都可以是不连续的。**
 - 方法区的大小，跟堆空间一样，可以选择固定大小或者可扩展。
 - 方法区的大小决定了系统可以保存多少个类，如果系统定义了太多的类，导致方法区溢出，虚拟机同样会抛出内存溢出错误：`java.lang.OutOfMemoryError: PermGen space` 或者`java.lang.OutOfMemoryError: Metaspace`  
   - <mark>加载大量的第三方的jar包；Tomcat部署的工程过多（30~50个）；大量动态的生成反射类都会产生方法区的溢出</mark>
@@ -59,7 +59,7 @@
 
 ![image-20220322212132220](README.assets/image-20220322212132220.png)
 
-而到了JDK8，终于完全废弃了永久代的概念，改用与JRockit、J9一样在本地内存中实现的元空间（Metaspace）来代替
+而到了**JDK8**，终于完全废弃了永久代的概念，改用与JRockit、J9一样在**本地内存中实现的元空间**（Metaspace）来代替
 
 ![image-20220322212153745](README.assets/image-20220322212153745.png)
 
@@ -185,7 +185,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Compressed class space
 
 > 它用于存储已被虚拟机加载的类型信息、常量、静态变量、即时编译器编译后的代码缓存等。
 
-![image-20200708161856504](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510144850.png)
+![0afcbe80-2364-4dd7-afdd-bbf3262728fc](README.assets/0afcbe80-2364-4dd7-afdd-bbf3262728fc.png)
 
 ### 7.4.2. 方法区的内部结构
 
@@ -198,7 +198,7 @@ Exception in thread "main" java.lang.OutOfMemoryError: Compressed class space
 3. 这个类型的修饰符（public，abstract，final的某个子集）
 4. 这个类型直接接口的一个有序列表
 
-#### 域（Field）信息
+#### 域（Field）信息（成员变量/属性)
 
 JVM必须在方法区中保存类型的所有域的相关信息以及域的声明顺序。
 
@@ -216,34 +216,452 @@ JVM必须保存所有方法的以下信息，同域信息一样包括声明顺�
 6. 异常表（abstract和native方法除外）
    - 每个异常处理的开始位置、结束位置、代码处理在程序计数器中的偏移地址、被捕获的异常类的常量池索引
 
+#### 查看方法区的内部结构
+
+```java
+/**
+ * 查看方法区的内部结构
+ */
+public class MethodInnerStructTest extends Object implements Comparable<String>, Serializable {
+    //属性
+    public int num = 10;
+    private static String str = "测试方法的内部结构";
+    //构造器
+    public MethodInnerStructTest(){
+        
+    }
+    //方法
+    public void test1(){
+        int count = 20;
+        System.out.println("count = " + count);
+    }
+
+    public static int test2(int cal){
+        int result = 0;
+        try {
+            int value = 30;
+            result = value / cal;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    @Override
+    public int compareTo(String o) {
+        return 0;
+    }
+}
+```
+
+使用javap -v -p 反编译字节码
+
+```bash
+Classfile /F:/JVMDemo/target/classes/chapter07/MethodInnerStructTest.class
+  Last modified 2022-3-28; size 1619 bytes
+  MD5 checksum 1f0d55ebca2c522a19fa712bf37366e2
+  Compiled from "MethodInnerStructTest.java"
+-------------类型信息--------------  
+public class chapter07.MethodInnerStructTest extends java.lang.Object implements java.lang.Comparable<java.lang.String>, java.io.Serializable
+-------------类型信息--------------  
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #18.#52        // java/lang/Object."<init>":()V
+   #2 = Fieldref           #17.#53        // chapter07/MethodInnerStructTest.num:I
+   #3 = Fieldref           #54.#55        // java/lang/System.out:Ljava/io/PrintStream;
+   #4 = Class              #56            // java/lang/StringBuilder
+   #5 = Methodref          #4.#52         // java/lang/StringBuilder."<init>":()V
+   #6 = String             #57            // count =
+   #7 = Methodref          #4.#58         // java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+   #8 = Methodref          #4.#59         // java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+   #9 = Methodref          #4.#60         // java/lang/StringBuilder.toString:()Ljava/lang/String;
+  #10 = Methodref          #61.#62        // java/io/PrintStream.println:(Ljava/lang/String;)V
+  #11 = Class              #63            // java/lang/Exception
+  #12 = Methodref          #11.#64        // java/lang/Exception.printStackTrace:()V
+  #13 = Class              #65            // java/lang/String
+  #14 = Methodref          #17.#66        // chapter07/MethodInnerStructTest.compareTo:(Ljava/lang/String;)I
+  #15 = String             #67            // 测试方法的内部结构
+  #16 = Fieldref           #17.#68        // chapter07/MethodInnerStructTest.str:Ljava/lang/String;
+  #17 = Class              #69            // chapter07/MethodInnerStructTest
+  #18 = Class              #70            // java/lang/Object
+  #19 = Class              #71            // java/lang/Comparable
+  #20 = Class              #72            // java/io/Serializable
+  #21 = Utf8               num
+  #22 = Utf8               I
+  #23 = Utf8               str
+  #24 = Utf8               Ljava/lang/String;
+  #25 = Utf8               <init>
+  #26 = Utf8               ()V
+  #27 = Utf8               Code
+  #28 = Utf8               LineNumberTable
+  #29 = Utf8               LocalVariableTable
+  #30 = Utf8               this
+  #31 = Utf8               Lchapter07/MethodInnerStructTest;
+  #32 = Utf8               test1
+  #33 = Utf8               count
+  #34 = Utf8               test2
+  #35 = Utf8               (I)I
+  #36 = Utf8               value
+  #37 = Utf8               e
+  #38 = Utf8               Ljava/lang/Exception;
+  #39 = Utf8               cal
+  #40 = Utf8               result
+  #41 = Utf8               StackMapTable
+  #42 = Class              #63            // java/lang/Exception
+  #43 = Utf8               compareTo
+  #44 = Utf8               (Ljava/lang/String;)I
+  #45 = Utf8               o
+  #46 = Utf8               (Ljava/lang/Object;)I
+  #47 = Utf8               <clinit>
+  #48 = Utf8               Signature
+  #49 = Utf8               Ljava/lang/Object;Ljava/lang/Comparable<Ljava/lang/String;>;Ljava/io/Serializable;
+  #50 = Utf8               SourceFile
+  #51 = Utf8               MethodInnerStructTest.java
+  #52 = NameAndType        #25:#26        // "<init>":()V
+  #53 = NameAndType        #21:#22        // num:I
+  #54 = Class              #73            // java/lang/System
+  #55 = NameAndType        #74:#75        // out:Ljava/io/PrintStream;
+  #56 = Utf8               java/lang/StringBuilder
+  #57 = Utf8               count =
+  #58 = NameAndType        #76:#77        // append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+  #59 = NameAndType        #76:#78        // append:(I)Ljava/lang/StringBuilder;
+  #60 = NameAndType        #79:#80        // toString:()Ljava/lang/String;
+  #61 = Class              #81            // java/io/PrintStream
+  #62 = NameAndType        #82:#83        // println:(Ljava/lang/String;)V
+  #63 = Utf8               java/lang/Exception
+  #64 = NameAndType        #84:#26        // printStackTrace:()V
+  #65 = Utf8               java/lang/String
+  #66 = NameAndType        #43:#44        // compareTo:(Ljava/lang/String;)I
+  #67 = Utf8               测试方法的内部结构
+  #68 = NameAndType        #23:#24        // str:Ljava/lang/String;
+  #69 = Utf8               chapter07/MethodInnerStructTest
+  #70 = Utf8               java/lang/Object
+  #71 = Utf8               java/lang/Comparable
+  #72 = Utf8               java/io/Serializable
+  #73 = Utf8               java/lang/System
+  #74 = Utf8               out
+  #75 = Utf8               Ljava/io/PrintStream;
+  #76 = Utf8               append
+  #77 = Utf8               (Ljava/lang/String;)Ljava/lang/StringBuilder;
+  #78 = Utf8               (I)Ljava/lang/StringBuilder;
+  #79 = Utf8               toString
+  #80 = Utf8               ()Ljava/lang/String;
+  #81 = Utf8               java/io/PrintStream
+  #82 = Utf8               println
+  #83 = Utf8               (Ljava/lang/String;)V
+  #84 = Utf8               printStackTrace
+{
+-------------域信息 -------------  
+  public int num;
+    descriptor: I
+    flags: ACC_PUBLIC
+
+  private static java.lang.String str;
+    descriptor: Ljava/lang/String;
+    flags: ACC_PRIVATE, ACC_STATIC
+-------------域信息 -------------  
+
+-------------构造器 --------------  
+  public chapter07.MethodInnerStructTest();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: bipush        10
+         7: putfield      #2                  // Field num:I
+        10: return
+      LineNumberTable:
+        line 13: 0
+        line 10: 4
+        line 15: 10
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      11     0  this   Lchapter07/MethodInnerStructTest;
+-------------构造器 --------------  
+
+-------------方法信息 --------------  
+  public void test1();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    ----- 方法中的字节码 -----
+    Code:
+      stack=3, locals=2, args_size=1
+         0: bipush        20
+         2: istore_1
+         3: getstatic     #3                  // Field java/lang/System.out:Ljava/io/PrintStream;
+         6: new           #4                  // class java/lang/StringBuilder
+         9: dup
+        10: invokespecial #5                  // Method java/lang/StringBuilder."<init>":()V
+        13: ldc           #6                  // String count =
+        15: invokevirtual #7                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        18: iload_1
+        19: invokevirtual #8                  // Method java/lang/StringBuilder.append:(I)Ljava/lang/StringBuilder;
+        22: invokevirtual #9                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        25: invokevirtual #10                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        28: return
+      ----- 方法中的字节码 -----
+      LineNumberTable:
+        line 18: 0
+        line 19: 3
+        line 20: 28
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      29     0  this   Lchapter07/MethodInnerStructTest;
+            3      26     1 count   I
+-------------方法信息 -------------- 
+
+-------------方法信息 -------------- 
+  public static int test2(int);
+    descriptor: (I)I
+    flags: ACC_PUBLIC, ACC_STATIC
+    ----- 方法中的字节码 -----
+    Code:
+      stack=2, locals=3, args_size=1
+         0: iconst_0
+         1: istore_1
+         2: bipush        30
+         4: istore_2
+         5: iload_2
+         6: iload_0
+         7: idiv
+         8: istore_1
+         9: goto          17
+        12: astore_2
+        13: aload_2
+        14: invokevirtual #12                 // Method java/lang/Exception.printStackTrace:()V
+        17: iload_1
+        18: ireturn
+      --- 异常表 ---
+      Exception table:
+         from    to  target type
+             2     9    12   Class java/lang/Exception
+      --- 异常表 ---
+      ----- 方法中的字节码 -----       
+      LineNumberTable:
+        line 23: 0
+        line 25: 2
+        line 26: 5
+        line 30: 9
+        line 28: 12
+        line 29: 13
+        line 31: 17
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            5       4     2 value   I
+           13       4     2     e   Ljava/lang/Exception;
+            0      19     0   cal   I
+            2      17     1 result   I
+      StackMapTable: number_of_entries = 2
+        frame_type = 255 /* full_frame */
+          offset_delta = 12
+          locals = [ int, int ]
+          stack = [ class java/lang/Exception ]
+        frame_type = 4 /* same */
+-------------方法信息 -------------- 
+
+-------------方法信息 -------------- 
+  public int compareTo(java.lang.String);
+    descriptor: (Ljava/lang/String;)I
+    flags: ACC_PUBLIC
+    ----- 方法中的字节码 -----
+    Code:
+      stack=1, locals=2, args_size=2
+         0: iconst_0
+         1: ireturn
+      LineNumberTable:
+        line 36: 0
+     ----- 方法中的字节码 -----   
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       2     0  this   Lchapter07/MethodInnerStructTest;
+            0       2     1     o   Ljava/lang/String;
+-------------方法信息 -------------- 
+
+-------------方法信息 -------------- 
+  public int compareTo(java.lang.Object);
+    descriptor: (Ljava/lang/Object;)I
+    flags: ACC_PUBLIC, ACC_BRIDGE, ACC_SYNTHETIC
+    Code:
+      stack=2, locals=2, args_size=2
+         0: aload_0
+         1: aload_1
+         2: checkcast     #13                 // class java/lang/String
+         5: invokevirtual #14                 // Method compareTo:(Ljava/lang/String;)I
+         8: ireturn
+      LineNumberTable:
+        line 8: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       9     0  this   Lchapter07/MethodInnerStructTest;
+-------------方法信息 -------------- 
+  static {};
+    descriptor: ()V
+    flags: ACC_STATIC
+    Code:
+      stack=1, locals=0, args_size=0
+         0: ldc           #15                 // String 测试方法的内部结构
+         2: putstatic     #16                 // Field str:Ljava/lang/String;
+         5: return
+      LineNumberTable:
+        line 11: 0
+}
+Signature: #49                          // Ljava/lang/Object;Ljava/lang/Comparable<Ljava/lang/String;>;Ljava/io/Serializable;
+SourceFile: "MethodInnerStructTest.java"
+```
+
 #### non-final的类变量
 
-- 静态变量和类关联在一起，随着类的加载而加载，他们成为类数据在逻辑上的一部分
+- 静态变量和类关联在一起，随着类的加载而加载，他们成为**类数据在逻辑上的一部分**
 - 类变量被类的所有实例共享，即使没有类实例时，你也可以访问它
 
 ```java
 public class MethodAreaTest {
     public static void main(String[] args) {
-        Order order = new Order();
+        Order order = null;
         order.hello();
         System.out.println(order.count);
     }
 }
-class Order {
+class Order{
     public static int count = 1;
-    public static void hello() {
-        System.out.println("hello!");
+    public static final int number = 2;
+    public static void hello(){
+        System.out.println("Hello World");
     }
 }
 ```
 
+```bash
+Hello World
+1
+```
+
 #### 补充说明：全局常量（static final）
 
-被声明为final的类变量的处理方法则不同，每个全局常量在编译的时候就会被分配了。
+被声明为final的static变量的处理方法则不同，每个全局常量在编译的时候就会被分配了。
+
+```java
+class Order{
+    public static int count = 1;
+    //常量
+    public static final int number = 2;
+    public static void hello(){
+        System.out.println("Hello World");
+    }
+}
+```
+
+```bash
+Classfile /F:/JVMDemo/target/classes/chapter07/Order.class
+  Last modified 2022-3-28; size 606 bytes
+  MD5 checksum e0cc6256d49c628f9345901c09f4e6fd
+  Compiled from "MethodAreaTest.java"
+class chapter07.Order
+  minor version: 0
+  major version: 52
+  flags: ACC_SUPER
+Constant pool:
+   #1 = Methodref          #7.#24         // java/lang/Object."<init>":()V
+   #2 = Fieldref           #25.#26        // java/lang/System.out:Ljava/io/PrintStream;
+   #3 = String             #27            // Hello World
+   #4 = Methodref          #28.#29        // java/io/PrintStream.println:(Ljava/lang/String;)V
+   #5 = Fieldref           #6.#30         // chapter07/Order.count:I
+   #6 = Class              #31            // chapter07/Order
+   #7 = Class              #32            // java/lang/Object
+   #8 = Utf8               count
+   #9 = Utf8               I
+  #10 = Utf8               number
+  #11 = Utf8               ConstantValue
+  #12 = Integer            2
+  #13 = Utf8               <init>
+  #14 = Utf8               ()V
+  #15 = Utf8               Code
+  #16 = Utf8               LineNumberTable
+  #17 = Utf8               LocalVariableTable
+  #18 = Utf8               this
+  #19 = Utf8               Lchapter07/Order;
+  #20 = Utf8               hello
+  #21 = Utf8               <clinit>
+  #22 = Utf8               SourceFile
+  #23 = Utf8               MethodAreaTest.java
+  #24 = NameAndType        #13:#14        // "<init>":()V
+  #25 = Class              #33            // java/lang/System
+  #26 = NameAndType        #34:#35        // out:Ljava/io/PrintStream;
+  #27 = Utf8               Hello World
+  #28 = Class              #36            // java/io/PrintStream
+  #29 = NameAndType        #37:#38        // println:(Ljava/lang/String;)V
+  #30 = NameAndType        #8:#9          // count:I
+  #31 = Utf8               chapter07/Order
+  #32 = Utf8               java/lang/Object
+  #33 = Utf8               java/lang/System
+  #34 = Utf8               out
+  #35 = Utf8               Ljava/io/PrintStream;
+  #36 = Utf8               java/io/PrintStream
+  #37 = Utf8               println
+  #38 = Utf8               (Ljava/lang/String;)V
+{
+  # 这里可以看到public static int count = 1;	没有加final关键字，这里只是对count进行了描述
+  public static int count;
+    descriptor: I
+    flags: ACC_PUBLIC, ACC_STATIC
+  # public static final int number = 2;这里有了final关键字，则即包含了描述，也对它进行了初始化
+  public static final int number;
+    descriptor: I
+    flags: ACC_PUBLIC, ACC_STATIC, ACC_FINAL
+    ConstantValue: int 2		# 初始化的值为2
+  
+  chapter07.Order();
+    descriptor: ()V
+    flags:
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 10: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Lchapter07/Order;
+
+  public static void hello();
+    descriptor: ()V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=0, args_size=0
+         0: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+         3: ldc           #3                  // String Hello World
+         5: invokevirtual #4                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+         8: return
+      LineNumberTable:
+        line 14: 0
+        line 15: 8
+  # 这个其实就是<clinit>方法，对静态变量进行复制	
+  static {};
+    descriptor: ()V
+    flags: ACC_STATIC
+    Code:
+      stack=1, locals=0, args_size=0
+         0: iconst_1
+         1: putstatic     #5                  // Field count:I
+         4: return
+      LineNumberTable:
+        line 11: 0
+}
+SourceFile: "MethodAreaTest.java"
+```
+
+
 
 ### 7.4.3. 运行时常量池 VS 常量池
 
-![image-20200708171151384](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510145605.png)
+![c46442c3-a805-4224-a521-3bef46055bb6](README.assets/c46442c3-a805-4224-a521-3bef46055bb6.png)
 
 - 方法区，内部包含了运行时常量池
 - 字节码文件，内部包含了常量池
@@ -252,9 +670,15 @@ class Order {
 
 官方文档：[https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html](https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html)
 
-![image-20200708172357052](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510145702.png)
+![15958167-cbfb-4375-826b-525b9721413c](README.assets/15958167-cbfb-4375-826b-525b9721413c.png)
 
 一个有效的字节码文件中除了包含类的版本信息、字段、方法以及接口等描述符信息外，还包含一项信息就是常量池表（Constant Pool Table），包括各种字面量和对类型、域和方法的符号引用
+
+![image-20220328210124747](README.assets/image-20220328210124747.png)
+
+**什么是字面量？**
+
+![image-20220328210011594](README.assets/image-20220328210011594.png)
 
 #### 为什么需要常量池？
 
@@ -272,7 +696,15 @@ public class SimpleClass {
 
 虽然只有194字节，但是里面却使用了String、System、PrintStream及Object等结构。这里的代码量其实很少了，如果代码多的话，引用的结构将会更多，这里就需要用到常量池了。
 
-![image-20210510145947122](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510145948.png)
+![image-20220328210158454](README.assets/image-20220328210158454.png)
+
+以test1()方法中的字节码指令为例
+
+![image-20220328210700785](README.assets/image-20220328210700785.png)
+
+![image-20220328210754657](README.assets/image-20220328210754657.png)
+
+其实可以类比生活中，每一个方法都是一道菜，常量池中的各个值就是各种原料。使用常量池中的各种原料来完成各种菜，即各种方法。
 
 #### 常量池中有什么?
 
@@ -312,8 +744,11 @@ public class MethodAreaTest2 {
 - <mark>常量池表（Constant Pool Table）是Class文件的一部分，用于存放编译期生成的各种字面量与符号引用，这部分内容将在类加载后存放到方法区的运行时常量池中。</mark>
 - 运行时常量池，在加载类和接口到虚拟机后，就会创建对应的运行时常量池。
 - JVM为每个已加载的类型（类或接口）都维护一个常量池。池中的数据项像数组项一样，是通过<mark>索引访问</mark>的。
-- 运行时常量池中包含多种不同的常量，包括编译期就已经明确的数值字面量，也包括到运行期解析后才能够获得的方法或者字段引用。此时不再是常量池中的符号地址了，这里换为<mark>真实地址</mark>。
+  ![image-20220328211540046](README.assets/image-20220328211540046.png)
+- **运行时常量池中包含多种不同的常量，包括编译期就已经明确的数值字面量，也包括到运行期解析后才能够获得的方法或者字段引用。此时不再是常量池中的符号地址了，这里换为<mark>真实地址</mark>**。
 - 运行时常量池，相对于Class文件常量池的另一重要特征是：具备<mark>动态性</mark>。
+  - String.intern()方法：如果当前字符串没有在常量池中，则把该字符串放入常量池
+
 - 运行时常量池类似于传统编程语言中的符号表（symboltable），但是它所包含的数据却比符号表要更加丰富一些。
 - 当创建类或接口的运行时常量池时，如果构造运行时常量池所需的内存空间超过了方法区所能提供的最大值，则JVM会抛OutOfMemoryError异常。
 
@@ -331,37 +766,137 @@ public class MethodAreaDemo {
 }
 ```
 
-![image-20210510151436251](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151437.png)
+```java
+Classfile /F:/JVMDemo/target/classes/chapter07/MethodAreaDemo.class
+  Last modified 2022-3-28; size 624 bytes
+  MD5 checksum fea937f80b9f5ff58b8456e9bdce6b98
+  Compiled from "MethodAreaDemo.java"
+public class chapter07.MethodAreaDemo
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #5.#24         // java/lang/Object."<init>":()V
+   #2 = Fieldref           #25.#26        // java/lang/System.out:Ljava/io/PrintStream;
+   #3 = Methodref          #27.#28        // java/io/PrintStream.println:(I)V
+   #4 = Class              #29            // chapter07/MethodAreaDemo
+   #5 = Class              #30            // java/lang/Object
+   #6 = Utf8               <init>
+   #7 = Utf8               ()V
+   #8 = Utf8               Code
+   #9 = Utf8               LineNumberTable
+  #10 = Utf8               LocalVariableTable
+  #11 = Utf8               this
+  #12 = Utf8               Lchapter07/MethodAreaDemo;
+  #13 = Utf8               main
+  #14 = Utf8               ([Ljava/lang/String;)V
+  #15 = Utf8               args
+  #16 = Utf8               [Ljava/lang/String;
+  #17 = Utf8               x
+  #18 = Utf8               I
+  #19 = Utf8               y
+  #20 = Utf8               a
+  #21 = Utf8               b
+  #22 = Utf8               SourceFile
+  #23 = Utf8               MethodAreaDemo.java
+  #24 = NameAndType        #6:#7          // "<init>":()V
+  #25 = Class              #31            // java/lang/System
+  #26 = NameAndType        #32:#33        // out:Ljava/io/PrintStream;
+  #27 = Class              #34            // java/io/PrintStream
+  #28 = NameAndType        #35:#36        // println:(I)V
+  #29 = Utf8               chapter07/MethodAreaDemo
+  #30 = Utf8               java/lang/Object
+  #31 = Utf8               java/lang/System
+  #32 = Utf8               out
+  #33 = Utf8               Ljava/io/PrintStream;
+  #34 = Utf8               java/io/PrintStream
+  #35 = Utf8               println
+  #36 = Utf8               (I)V
+{
+  public chapter07.MethodAreaDemo();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 3: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Lchapter07/MethodAreaDemo;
 
-![image-20210510151504259](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151505.png)
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=3, locals=5, args_size=1
+         0: sipush        500
+         3: istore_1
+         4: bipush        100
+         6: istore_2
+         7: iload_1
+         8: iload_2
+         9: idiv
+        10: istore_3
+        11: bipush        50
+        13: istore        4
+        15: getstatic     #2                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        18: iload_3
+        19: iload         4
+        21: iadd
+        22: invokevirtual #3                  // Method java/io/PrintStream.println:(I)V
+        25: return
+      LineNumberTable:
+        line 5: 0
+        line 6: 4
+        line 7: 7
+        line 8: 11
+        line 9: 15
+        line 10: 25
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      26     0  args   [Ljava/lang/String;
+            4      22     1     x   I
+            7      19     2     y   I
+           11      15     3     a   I
+           15      11     4     b   I
+}
+SourceFile: "MethodAreaDemo.java"
+```
 
-![image-20210510151520952](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151523.png)
+![1](README.assets/1.png)
 
-![image-20210510151609566](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151610.png)
+![2](README.assets/2.png)
 
-![image-20210510151648231](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151651.png)
+![3](README.assets/3.png)
 
-![image-20210510151712355](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151713.png)
+![4](README.assets/4.png)
 
-![image-20210510151753579](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151755.png)
+![5](README.assets/5.png)
 
-![image-20210510151829404](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151830.png)
+![6](README.assets/6.png)
 
-![image-20210510151918342](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151919.png)
+![7](README.assets/7.png)
 
-![image-20210510151951327](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510151953.png)
+![8](README.assets/8.png)
 
-![image-20200708205708057](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510195617.png)
+![9](README.assets/9.png)
 
-![image-20210510152102989](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510152104.png)
+![10](README.assets/10.png)
 
-![image-20210510152138492](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510152139.png)
+![11](README.assets/11.png)
 
-![image-20210510195824437](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510195826.png)
+![12](README.assets/12.png)
 
-![image-20210510195911639](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510195913.png)
+![13](README.assets/13.png)
 
-![image-20210510152243933](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510152246.png)
+![14](README.assets/14.png)
+
+![15](README.assets/15.png)
+
+![16](README.assets/16.png)
 
 ## 7.6. 方法区的演进细节
 
