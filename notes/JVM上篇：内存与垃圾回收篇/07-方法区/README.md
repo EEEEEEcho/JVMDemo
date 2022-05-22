@@ -1,5 +1,5 @@
-> 笔记来源：[尚硅谷JVM全套教程，百万播放，全网巅峰（宋红康详解java虚拟机）](https://www.bilibili.com/video/BV1PJ411n7xZ "尚硅谷JVM全套教程，百万播放，全网巅峰（宋红康详解java虚拟机）")
->
+笔记来源：[尚硅谷JVM全套教程，百万播放，全网巅峰（宋红康详解java虚拟机）](https://www.bilibili.com/video/BV1PJ411n7xZ "尚硅谷JVM全套教程，百万播放，全网巅峰（宋红康详解java虚拟机）")
+
 > 同步更新：https://gitee.com/vectorx/NOTE_JVM
 >
 > https://codechina.csdn.net/qq_35925558/NOTE_JVM
@@ -708,7 +708,7 @@ public class SimpleClass {
 
 #### 常量池中有什么?
 
-击中常量池内存储的数据类型包括：
+其中常量池内存储的数据类型包括：
 
 - 数量值
 - 字符串值
@@ -908,17 +908,19 @@ SourceFile: "MethodAreaDemo.java"
 | **JDK1.7**   | **有永久代，但已经逐步 “去永久代”，字符串常量池，静态变量移除，保存在堆中** |
 | **JDK1.8**   | **无永久代，类型信息，字段，方法，常量保存在本地内存的元空间，但字符串常量池、静态变量仍然在堆中。** |
 
-![image-20200708211541300](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510162615.png)
+![image-20220414155351233](README.assets/image-20220414155351233.png)
 
-![image-20200708211609911](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510162620.png)
+![image-20220414155749746](README.assets/image-20220414155749746.png)
 
-![image-20200708211637952](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510162628.png)
+![image-20220414155853760](README.assets/image-20220414155853760.png)
+
+![image-20220414155841809](README.assets/image-20220414155841809.png)
 
 ### 7.6.1. 为什么永久代要被元空间替代？
 
 官网地址：[JEP 122: Remove the Permanent Generation (java.net)](http://openjdk.java.net/jeps/122)
 
-![image-20210510163843564](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510163848.png)
+![image-20220414160136913](README.assets/image-20220414160136913.png)
 
 JRockit是和HotSpot融合后的结果，因为JRockit没有永久代，所以他们不需要配置永久代
 
