@@ -308,7 +308,7 @@ Constant pool:
       stack=2, locals=4, args_size=1
          0: iconst_2	#生成常量2
          1: istore_1	#存储到索引为1的操作数栈
-         2: iconst_3	#生成常量2
+         2: iconst_3	#生成常量3
          3: istore_2	#存储到索引为2的操作数栈
          4: iload_1		#加载索引为1的操作数栈所存的值
          5: iload_2		#加载索引为2的操作数栈所存的值

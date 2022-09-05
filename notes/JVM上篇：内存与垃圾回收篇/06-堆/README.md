@@ -395,7 +395,11 @@ public class HeapInstanceTest {
 **注意，这个图片写错了，应该将图中所有的Major GC  替换为 Minor GC**
 ![image-20220310221747145](README.assets/image-20220310221747145.png)
 
+**注意，这个图片写错了，应该将图中所有的Major GC  替换为 Minor GC**
 
+**注意，这个图片写错了，应该将图中所有的Major GC  替换为 Minor GC**
+
+**注意，这个图片写错了，应该将图中所有的Major GC  替换为 Minor GC**
 
 **常用调优工具（在JVM下篇：性能监控与调优篇会详细介绍）**
 

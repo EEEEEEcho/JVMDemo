@@ -26,7 +26,7 @@
 >
 > Java对象头有什么？
 
-![image-20200709095356247](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510220702.png)
+![](README.assets/5779a0e8-b9ab-4040-a845-abe0c26e9b03.png)
 
 ### 8.1.1. 创建对象的方式
 
@@ -41,7 +41,82 @@
 
 前面所述是从字节码角度看待对象的创建过程，现在从执行步骤的角度来分析：
 
-![image-20210510220743192](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510220744.png)
+![](README.assets/2ac633b9-c4f2-4465-9275-40d6bb8948dc.png)
+
+```java
+public class ObjectTest {
+    public static void main(String[] args) {
+        Object o = new Object();
+    }
+}
+```
+
+```bash
+Classfile /E:/WorkSpace/JVMDemo/target/classes/chapter08/ObjectTest.class
+  Last modified 2022-6-24; size 440 bytes
+  MD5 checksum 6652572cf71ec017e5df893db2704f03
+  Compiled from "ObjectTest.java"
+public class chapter08.ObjectTest
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #2.#19         // java/lang/Object."<init>":()V
+   #2 = Class              #20            // java/lang/Object
+   #3 = Class              #21            // chapter08/ObjectTest
+   #4 = Utf8               <init>
+   #5 = Utf8               ()V
+   #6 = Utf8               Code
+   #7 = Utf8               LineNumberTable
+   #8 = Utf8               LocalVariableTable
+   #9 = Utf8               this
+  #10 = Utf8               Lchapter08/ObjectTest;
+  #11 = Utf8               main
+  #12 = Utf8               ([Ljava/lang/String;)V
+  #13 = Utf8               args
+  #14 = Utf8               [Ljava/lang/String;
+  #15 = Utf8               o
+  #16 = Utf8               Ljava/lang/Object;
+  #17 = Utf8               SourceFile
+  #18 = Utf8               ObjectTest.java
+  #19 = NameAndType        #4:#5          // "<init>":()V
+  #20 = Utf8               java/lang/Object
+  #21 = Utf8               chapter08/ObjectTest
+{
+  public chapter08.ObjectTest();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 3: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Lchapter08/ObjectTest;
+
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=2, args_size=1
+         0: new           #2                  // class java/lang/Object，先判断Object类是否加载
+         3: dup
+         4: invokespecial #1                  // Method java/lang/Object."<init>":()V 调用Object的构造器
+         7: astore_1
+         8: return
+      LineNumberTable:
+        line 5: 0
+        line 6: 8
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       9     0  args   [Ljava/lang/String;
+            8       1     1     o   Ljava/lang/Object;
+}
+SourceFile: "ObjectTest.java"
+```
 
 #### 1. 判断对象对应的类是否加载、链接、初始化
 
@@ -77,7 +152,7 @@
 
 #### 5. 设置对象的对象头
 
-将对象的所属类（即类的元数据信息）、对象的HashCode和对象的GC信息、锁信息等数据存储在对象的对象头中。这个过程的具体设置方式取决于JVM实现。
+将对象的所属类（即类的元数据 信息）、对象的HashCode和对象的GC信息、锁信息等数据存储在对象的对象头中。这个过程的具体设置方式取决于JVM实现。
 
 #### 6. 执行init方法进行初始化
 
@@ -103,7 +178,7 @@
 
 ## 8.2. 对象内存布局
 
-![image-20200709151033237](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510224327.png)
+![](README.assets/cb5575a8-e6bf-4295-9137-cbf42fb2be06.png)
 
 ### 8.2.1. 对象头（Header）
 
@@ -160,29 +235,29 @@ public class CustomerTest{
 
 **图示**
 
-![image-20200709152801713](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510225900.png)
+![](README.assets/17d4fda3-067a-47bd-a259-3a3860081ae2.png)
 
 ### 小结
 
-![image-20210510225407119](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510225408.png)
+## ![](README.assets/8a960f1e-338c-435e-b1b6-ded514558c50.png)
 
 ## 8.3. 对象的访问定位
 
-![image-20210510230045654](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510230046.png)
+![](README.assets/07de4ef2-749a-4fa5-ae8a-fa8ff4a17299.png)
 
 JVM是如何通过栈帧中的对象引用访问到其内部的对象实例呢？
 
-![image-20200709164149920](https://gitee.com/moxi159753/LearningNotes/raw/master/JVM/1_内存与垃圾回收篇/10_对象实例化内存布局与访问定位/images/image-20200709164149920.png)
+### ![image-20220624184611235](README.assets/image-20220624184611235.png)
 
 ### 8.3.1. 句柄访问
 
-![image-20210510230241991](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510230243.png)
+![](README.assets/5a8f7d35-2920-41e0-81b3-404d075c09ec.png)
 
-reference中存储稳定句柄地址，对象被移动（垃圾收集时移动对象很普遍）时只会改变句柄中实例数据指针即可，reference本身不需要被修改
+**reference中存储稳定句柄地址，对象被移动（垃圾收集时移动对象很普遍）时只会改变句柄中实例数据指针即可，reference本身不需要被修改**
 
 ### 8.3.2. 直接指针（HotSpot采用）
 
-![image-20210510230337956](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510230339.png)
+![](README.assets/8e7589f0-8e34-4403-90ee-6399e5ee119b.png)
 
 直接指针是局部变量表中的引用，直接指向堆中的实例，在对象实例中有类型指针，指向的是方法区中的对象类型数据
 
@@ -199,13 +274,13 @@ reference中存储稳定句柄地址，对象被移动（垃圾收集时移动�
 
 使用IO读写文件，需要与磁盘交互，需要由用户态切换到内核态。在内核态时，需要两份内存存储重复数据，效率低。
 
-![image-20210510231408607](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510231410.png)
+![](README.assets/6a60373c-504f-43d5-a77f-4182d8be0790.png)
 
 ### 8.4.3. 直接缓存区
 
 使用NIO时，操作系统划出的直接缓存区可以被java代码直接访问，只有一份。NIO适合对大文件的读写操作。
 
-![image-20210510231456550](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510231457.png)
+![](README.assets/5e8b391e-edb0-409e-8040-b64e324d91c9.png)
 
 也可能导致OutOfMemoryError异常
 
@@ -224,4 +299,4 @@ Exception in thread "main" java.lang.OutOfMemoryError: Direct buffer memory
 
 直接内存大小可以通过`MaxDirectMemorySize`设置。如果不指定，默认与堆的最大值-Xmx参数值一致
 
-![image-20200709230647277](https://gitee.com/moxi159753/LearningNotes/raw/master/JVM/1_内存与垃圾回收篇/11_直接内存/images/image-20200709230647277.png)
+![](README.assets/3aafed37-d4c4-49d9-8714-72fc7098e2ac.png)

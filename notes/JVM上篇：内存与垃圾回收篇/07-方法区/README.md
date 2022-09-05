@@ -698,6 +698,281 @@ public class SimpleClass {
 
 ![image-20220328210158454](README.assets/image-20220328210158454.png)
 
+再比如
+
+```java
+public class ConstPoolMeaning {
+    String world = "World";
+    //常量池存在的意义
+    public String sayHello(){
+        String hello = "Hello";
+        String helloWorld = hello + world;
+        System.out.println(helloWorld);
+        return helloWorld;
+    }
+
+    public String sayGoodbye(){
+        String goodbye = "Goodbye";
+        String goodbyeWorld = goodbye + world;
+        System.out.println(goodbyeWorld);
+        return goodbyeWorld;
+    }
+}
+```
+
+编译后的字节码是：
+
+```bash
+Classfile /E:/WorkSpace/JVMDemo/target/classes/chapter07/ConstPoolMeaning.class
+  Last modified 2022-8-30; size 1093 bytes
+  MD5 checksum 07147366aa333dc62169515eb04a1003
+  Compiled from "ConstPoolMeaning.java"
+public class chapter07.ConstPoolMeaning
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #13.#36        // java/lang/Object."<init>":()V
+   #2 = String             #37            // World
+   #3 = Fieldref           #12.#38        // chapter07/ConstPoolMeaning.world:Ljava/lang/String;
+   #4 = String             #39            // Hello
+   #5 = Class              #40            // java/lang/StringBuilder
+   #6 = Methodref          #5.#36         // java/lang/StringBuilder."<init>":()V
+   #7 = Methodref          #5.#41         // java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+   #8 = Methodref          #5.#42         // java/lang/StringBuilder.toString:()Ljava/lang/String;
+   #9 = Fieldref           #43.#44        // java/lang/System.out:Ljava/io/PrintStream;
+  #10 = Methodref          #45.#46        // java/io/PrintStream.println:(Ljava/lang/String;)V
+  #11 = String             #47            // Goodbye
+  #12 = Class              #48            // chapter07/ConstPoolMeaning
+  #13 = Class              #49            // java/lang/Object
+  #14 = Utf8               world
+  #15 = Utf8               Ljava/lang/String;
+  #16 = Utf8               <init>
+  #17 = Utf8               ()V
+  #18 = Utf8               Code
+  #19 = Utf8               LineNumberTable
+  #20 = Utf8               LocalVariableTable
+  #21 = Utf8               this
+  #22 = Utf8               Lchapter07/ConstPoolMeaning;
+  #23 = Utf8               sayHello
+  #24 = Utf8               ()Ljava/lang/String;
+  #25 = Utf8               hello
+  #26 = Utf8               helloWorld
+  #27 = Utf8               sayGoodbye
+  #28 = Utf8               goodbye
+  #29 = Utf8               goodbyeWorld
+  #30 = Utf8               main
+  #31 = Utf8               ([Ljava/lang/String;)V
+  #32 = Utf8               args
+  #33 = Utf8               [Ljava/lang/String;
+  #34 = Utf8               SourceFile
+  #35 = Utf8               ConstPoolMeaning.java
+  #36 = NameAndType        #16:#17        // "<init>":()V
+  #37 = Utf8               World
+  #38 = NameAndType        #14:#15        // world:Ljava/lang/String;
+  #39 = Utf8               Hello
+  #40 = Utf8               java/lang/StringBuilder
+  #41 = NameAndType        #50:#51        // append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+  #42 = NameAndType        #52:#24        // toString:()Ljava/lang/String;
+  #43 = Class              #53            // java/lang/System
+  #44 = NameAndType        #54:#55        // out:Ljava/io/PrintStream;
+  #45 = Class              #56            // java/io/PrintStream
+  #46 = NameAndType        #57:#58        // println:(Ljava/lang/String;)V
+  #47 = Utf8               Goodbye
+  #48 = Utf8               chapter07/ConstPoolMeaning
+  #49 = Utf8               java/lang/Object
+  #50 = Utf8               append
+  #51 = Utf8               (Ljava/lang/String;)Ljava/lang/StringBuilder;
+  #52 = Utf8               toString
+  #53 = Utf8               java/lang/System
+  #54 = Utf8               out
+  #55 = Utf8               Ljava/io/PrintStream;
+  #56 = Utf8               java/io/PrintStream
+  #57 = Utf8               println
+  #58 = Utf8               (Ljava/lang/String;)V
+{
+  java.lang.String world;
+    descriptor: Ljava/lang/String;
+    flags:
+
+  public chapter07.ConstPoolMeaning();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: aload_0
+         5: ldc           #2                  // String World
+         7: putfield      #3                  // Field world:Ljava/lang/String;
+        10: return
+      LineNumberTable:
+        line 3: 0
+        line 4: 4
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      11     0  this   Lchapter07/ConstPoolMeaning;
+
+  public java.lang.String sayHello();
+    descriptor: ()Ljava/lang/String;
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=3, args_size=1
+         0: ldc           #4                  // String Hello
+         2: astore_1
+         3: new           #5                  // class java/lang/StringBuilder
+         6: dup
+         7: invokespecial #6                  // Method java/lang/StringBuilder."<init>":()V
+        10: aload_1
+        11: invokevirtual #7                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        14: aload_0
+        15: getfield      #3                  // Field world:Ljava/lang/String;
+        18: invokevirtual #7                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        21: invokevirtual #8                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        24: astore_2
+        25: getstatic     #9                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        28: aload_2
+        29: invokevirtual #10                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        32: aload_2
+        33: areturn
+      LineNumberTable:
+        line 7: 0
+        line 8: 3
+        line 9: 25
+        line 10: 32
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      34     0  this   Lchapter07/ConstPoolMeaning;
+            3      31     1 hello   Ljava/lang/String;
+           25       9     2 helloWorld   Ljava/lang/String;
+
+  public java.lang.String sayGoodbye();
+    descriptor: ()Ljava/lang/String;
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=3, args_size=1
+         0: ldc           #11                 // String Goodbye
+         2: astore_1
+         3: new           #5                  // class java/lang/StringBuilder
+         6: dup
+         7: invokespecial #6                  // Method java/lang/StringBuilder."<init>":()V
+        10: aload_1
+        11: invokevirtual #7                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        14: aload_0
+        15: getfield      #3                  // Field world:Ljava/lang/String;
+        18: invokevirtual #7                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        21: invokevirtual #8                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        24: astore_2
+        25: getstatic     #9                  // Field java/lang/System.out:Ljava/io/PrintStream;
+        28: aload_2
+        29: invokevirtual #10                 // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        32: aload_2
+        33: areturn
+      LineNumberTable:
+        line 14: 0
+        line 15: 3
+        line 16: 25
+        line 17: 32
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      34     0  this   Lchapter07/ConstPoolMeaning;
+            3      31     1 goodbye   Ljava/lang/String;
+           25       9     2 goodbyeWorld   Ljava/lang/String;
+
+  public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=0, locals=1, args_size=1
+         0: return
+      LineNumberTable:
+        line 22: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       1     0  args   [Ljava/lang/String;
+}
+SourceFile: "ConstPoolMeaning.java"
+
+```
+
+如果没有常量池的话,这两个方法的字节码可能会是这样的
+
+```bash
+public java.lang.String sayHello();
+    descriptor: ()Ljava/lang/String;
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=3, args_size=1
+         0: ldc           String Hello
+         2: astore_1
+         3: new           class java/lang/StringBuilder
+         6: dup
+         7: invokespecial Method java/lang/StringBuilder."<init>":()V
+        10: aload_1
+        11: invokevirtual Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        14: aload_0
+        15: getfield      Field world:Ljava/lang/String;
+        18: invokevirtual Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        21: invokevirtual Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        24: astore_2
+        25: getstatic     Field java/lang/System.out:Ljava/io/PrintStream;
+        28: aload_2
+        29: invokevirtual Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        32: aload_2
+        33: areturn
+      LineNumberTable:
+        line 7: 0
+        line 8: 3
+        line 9: 25
+        line 10: 32
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      34     0  this   Lchapter07/ConstPoolMeaning;
+            3      31     1 hello   Ljava/lang/String;
+           25       9     2 helloWorld   Ljava/lang/String;
+
+  public java.lang.String sayGoodbye();
+    descriptor: ()Ljava/lang/String;
+    flags: ACC_PUBLIC
+    Code:
+      stack=2, locals=3, args_size=1
+         0: ldc           String Goodbye
+         2: astore_1
+         3: new           class java/lang/StringBuilder
+         6: dup
+         7: invokespecial Method java/lang/StringBuilder."<init>":()V
+        10: aload_1
+        11: invokevirtual Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        14: aload_0
+        15: getfield      Field world:Ljava/lang/String;
+        18: invokevirtual Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+        21: invokevirtual Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+        24: astore_2
+        25: getstatic     Field java/lang/System.out:Ljava/io/PrintStream;
+        28: aload_2
+        29: invokevirtual Method java/io/PrintStream.println:(Ljava/lang/String;)V
+        32: aload_2
+        33: areturn
+      LineNumberTable:
+        line 14: 0
+        line 15: 3
+        line 16: 25
+        line 17: 32
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      34     0  this   Lchapter07/ConstPoolMeaning;
+            3      31     1 goodbye   Ljava/lang/String;
+           25       9     2 goodbyeWorld   Ljava/lang/String;
+```
+
+不仅字节码的长度大大加长，而且引用了很多重复的常量。
+
+所以出现了常量池，以符号的形式，表示了某一引用，然后用到该引用时，通过符号到常量池中去寻找。找到真正的引用。
+
+其实这和我们日常开发中的缓存机制挺像的，需要某些数据时，就带着数据的标识去公共的缓存中去寻找。
+
+
+
 以test1()方法中的字节码指令为例
 
 ![image-20220328210700785](README.assets/image-20220328210700785.png)
@@ -900,7 +1175,7 @@ SourceFile: "MethodAreaDemo.java"
 
 ## 7.6. 方法区的演进细节
 
-1. 首先明确：只有Hotspot才有永久代。BEA JRockit、IBMJ9等来说，是不存在永久代的概念的。原则上如何实现方法区属于虚拟机实现细节，不受《Java虚拟机规范》管束，并不要求统一
+1. 首先明确：**只有Hotspot才有永久代**。BEA JRockit、IBMJ9等来说，是不存在永久代的概念的。原则上如何实现方法区属于虚拟机实现细节，不受《Java虚拟机规范》管束，并不要求统一
 2. Hotspot中方法区的变化：
 
 | JDK1.6及之前 | 有永久代（permanet），静态变量存储在永久代上                 |
@@ -996,17 +1271,17 @@ public class StaticobjTest {
 }
 ```
 
-使用JHSDB工具进行分析，这里细节略掉
+使用JHSDB工具进行分析，这里细节略掉 
 
-![image-20200708215218078](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510164814.png)
+staticobj随着Test的类型信息存放在方法区，instanceobj随着Test的对象实例存放在Java堆，localobject则是存放在foo()方法栈帧的局部变量表中，注意，**这里说的三个变量是指向对象引用，不是对象实体**。
 
-staticobj随着Test的类型信息存放在方法区，instanceobj随着Test的对象实例存放在Java堆，localobject则是存放在foo()方法栈帧的局部变量表中。
+![image-20220624171803360](README.assets/image-20220624171803360.png)
 
-![image-20200708215025527](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510165837.png)
-
-测试发现：三个对象的数据在内存中的地址都落在Eden区范围内，所以结论：只要是对象实例必然会在Java堆中分配。
+测试发现：三个对象的数据在内存中的地址都落在Eden区范围内，所以结论：**只要是对象实例必然会在Java堆中分配**。
 
 接着，找到了一个引用该staticobj对象的地方，是在一个java.lang.Class的实例里，并且给出了这个实例的地址，通过Inspector查看该对象实例，可以清楚看到这确实是一个java.lang.Class类型的对象实例，里面有一个名为staticobj的实例字段：
+
+![365bc726-4c43-40b7-a5c7-c6ce71998243](README.assets/365bc726-4c43-40b7-a5c7-c6ce71998243.png)
 
 从《Java虚拟机规范》所定义的概念模型来看，所有Class相关的信息都应该存放在方法区之中，但方法区该如何实现，《Java虚拟机规范》并未做出规定，这就成了一件允许不同虚拟机自己灵活把握的事情。JDK7及其以后版本的HotSpot虚拟机选择把静态变量与类型在Java语言一端的映射class对象存放在一起，存储于Java堆之中，从我们的实验中也明确验证了这一点
 
@@ -1042,7 +1317,7 @@ Java虚拟机被允许对满足上述三个条件的无用类进行回收，这�
 
 ## 总结
 
-![image-20200708220303243](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210510165830.png)
+![image-20220624173428999](README.assets/image-20220624173428999.png)
 
 ## 常见面试题
 
