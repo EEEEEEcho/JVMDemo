@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 public class StringExercise {
     String str = new String("good");
+//    String str = "good";
     char[] ch = {'t','e','s','t'};
 
     public void change(String str,char[] ch){

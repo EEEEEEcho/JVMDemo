@@ -260,72 +260,123 @@ class Memory {
 **举例1**
 
 ```java
-  public static void test1() {
-      // 都是常量，前端编译期会进行代码优化
-      // 通过idea直接看对应的反编译的class文件，会显示 String s1 = "abc"; 说明做了代码优化
-      String s1 = "a" + "b" + "c";  
-      String s2 = "abc"; 
-  
-      // true，有上述可知，s1和s2实际上指向字符串常量池中的同一个值
-      System.out.println(s1 == s2); 
-  }
+public static void test1(){
+    String s1 = "a" + "b" + "c";
+    String s2 = "abc";      //一定放在字符串常量池中，将此地址赋值给s2
+
+    /**
+         * 最终.java编译成.class，再执行.class
+         * String s1 = "abc";
+         * String s2 = "abc";
+         */
+    System.out.println(s1 == s2);       //true
+    System.out.println(s1.equals(s2));  //true
+}
 ```
 
   **举例2**
 
 ```java
-public static void test5() {
-    String s1 = "javaEE";
+public static void test2(){
+    String s1 = "javaee";
     String s2 = "hadoop";
 
-    String s3 = "javaEEhadoop";
-    String s4 = "javaEE" + "hadoop";    
+    String s3 = "javaeehadoop";
+    String s4 = "javaee" + "hadoop";
     String s5 = s1 + "hadoop";
-    String s6 = "javaEE" + s2;
+    String s6 = "javaee" + s2;
+
     String s7 = s1 + s2;
 
-    System.out.println(s3 == s4); // true 编译期优化
-    System.out.println(s3 == s5); // false s1是变量，不能编译期优化
-    System.out.println(s3 == s6); // false s2是变量，不能编译期优化
-    System.out.println(s3 == s7); // false s1、s2都是变量
-    System.out.println(s5 == s6); // false s5、s6 不同的对象实例
-    System.out.println(s5 == s7); // false s5、s7 不同的对象实例
-    System.out.println(s6 == s7); // false s6、s7 不同的对象实例
+    System.out.println(s3 == s4);   //true 常量与常量的拼接结果在常量池，原理是编译期优化
+    System.out.println(s3 == s5);   //false 只要其中有一个是变量，结果就在堆中（非常量池区域），相当于新new了一个字符串对象。变量拼接的原理是StringBuilder
+    System.out.println(s3 == s6);   //false 只要其中有一个是变量，结果就在堆中（非常量池区域），相当于新new了一个字符串对象。变量拼接的原理是StringBuilder
+    System.out.println(s3 == s7);   //false 只要其中有一个是变量，结果就在堆中（非常量池区域），相当于新new了一个字符串对象。变量拼接的原理是StringBuilder
+    System.out.println(s5 == s6);   //false 只要其中有一个是变量，结果就在堆中（非常量池区域），相当于新new了一个字符串对象。变量拼接的原理是StringBuilder
+    System.out.println(s5 == s7);   //false 只要其中有一个是变量，结果就在堆中（非常量池区域），相当于新new了一个字符串对象。变量拼接的原理是StringBuilder
+    System.out.println(s6 == s7);   //false 只要其中有一个是变量，结果就在堆中（非常量池区域），相当于新new了一个字符串对象。变量拼接的原理是StringBuilder
 
-    String s8 = s6.intern();
-    System.out.println(s3 == s8); // true intern之后，s8和s3一样，指向字符串常量池中的"javaEEhadoop"
+
+    //intern():判断字符串常量池中是否存在javaeehadoop的值，如果存在，则返回常量池中javaeehadoop的地址
+    //如果不存在，则在常量池中加载一份javaeehadoop,并返回此对象的地址
+    String s8 = s6.intern();        //调用intern 将字符串s6 的内容放入到字符串常量池中，然后返回其在常量池中位置的引用
+    System.out.println(s3 == s8);   //true
 }
 ```
 
 **举例3**
 
 ```java
-public void test6(){
-    String s0 = "beijing";
-    String s1 = "bei";
-    String s2 = "jing";
-    String s3 = s1 + s2;
-    System.out.println(s0 == s3); // false s3指向对象实例，s0指向字符串常量池中的"beijing"
-    String s7 = "shanxi";
-    final String s4 = "shan";
-    final String s5 = "xi";
-    String s6 = s4 + s5;
-    System.out.println(s6 == s7); // true s4和s5是final修饰的，编译期就能确定s6的值了
+public static void test3(){
+    String s1 = "a";
+    String s2 = "b";
+    String s3 = "ab";
+    /*
+            s1 + s2 的执行细节
+            StringBuilder sb = new StringBuilder();
+            sb.append("a");
+            sb.append("b");
+            sb.toString();  //约等于new String("ab");
+            JDK5.0 之后用的是StringBuilder 之前用的是StringBuffer
+         */
+    String s4 = s1 + s2;
+    System.out.println(s3 == s4);   //false
 }
 ```
 
+- "+"  本质上使用的是StringBuilder进行拼接
+  ![image-20220914162805368](README.assets/image-20220914162805368.png)
 - 不使用final修饰，即为变量。如s3行的s1和s2，会通过new StringBuilder进行拼接
-- 使用final修饰，即为常量。会在编译器进行代码优化。<mark>在实际开发中，能够使用final的，尽量使用</mark>
 
 **举例4**
 
 ```java
-public void test3(){
-    String s1 = "a";
-    String s2 = "b";
+public static void test4(){
+    final String s1 = "a";
+    final String s2 = "b";
     String s3 = "ab";
+    /**
+         * 1.字符串拼接操作不一定使用的是StringBuilder,
+         * 如果拼接符号左右两边都是字符串常量(字面量)或者常量引用(final定义的常量的引用)
+         * 则仍然使用编译器优化，即非StringBuilder的方式
+         * 
+         * 2.针对于final修饰类、方法、基本数据类型、引用数据类型的量的结构时
+         * 尽量加上final
+         */
     String s4 = s1 + s2;
-    System.out.println(s3==s4);
+    System.out.println(s3 == s4);   //true
+}
+```
+
+- 使用final修饰，即为常量。会在编译器进行代码优化。<mark>在实际开发中，能够使用final的，尽量使用</mark>
+- ![image-20220914164748082](README.assets/image-20220914164748082.png)
+
+**举例5**
+
+```java
+public static void test5(int highLevel){
+    String src = "";
+    for (int i = 0; i < highLevel; i++) {
+        //每次拼接都会创建一个StringBuilder对象，并调用toString()创建一个String
+        //内存中创建了许多StringBuilder和String,会占用内很多内存，而且因为创建了
+        //很多对象，导致GC的压力增大
+        src = src + "a";
+    }
+
+    //只有一个StringBuilder，每次添加一个字符串"a"
+    //append()方式添加字符串的效率要远高于String的字符串拼接方式
+    StringBuilder sb = new StringBuilder("");
+    for (int i = 0; i < highLevel; i++) {
+        sb.append("a");
+    }
+
+    //优化
+    //在实际开发中，如果基本确定一共要添加的字符串数量不高于某个限定值highlevel
+    //的情况下，要考虑使用带有初始容量的构造器进行实例化，避免扩容和复制操作带来的性能损耗
+    StringBuilder sbs = new StringBuilder(highLevel + 1);
+    for (int i = 0; i < highLevel; i++) {
+        sbs.append("a");
+    }
 }
 ```
 

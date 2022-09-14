@@ -4,7 +4,11 @@ public class StringTest5 {
     public static void main(String[] args) {
 //        test1();
 
-        test2();
+//        test2();
+
+//        test3();
+
+        test4();
     }
 
     public static void test1(){
@@ -44,5 +48,62 @@ public class StringTest5 {
         //如果不存在，则在常量池中加载一份javaeehadoop,并返回此对象的地址
         String s8 = s6.intern();        //调用intern 将字符串s6 的内容放入到字符串常量池中，然后返回其在常量池中位置的引用
         System.out.println(s3 == s8);   //true
+    }
+
+    public static void test3(){
+        String s1 = "a";
+        String s2 = "b";
+        String s3 = "ab";
+        /*
+            s1 + s2 的执行细节
+            StringBuilder sb = new StringBuilder();
+            sb.append("a");
+            sb.append("b");
+            sb.toString();  //约等于new String("ab");
+            JDK5.0 之后用的是StringBuilder 之前用的是StringBuffer
+         */
+        String s4 = s1 + s2;
+        System.out.println(s3 == s4);   //false
+    }
+
+    public static void test4(){
+        final String s1 = "a";
+        final String s2 = "b";
+        String s3 = "ab";
+        /**
+         * 1.字符串拼接操作不一定使用的是StringBuilder,
+         * 如果拼接符号左右两边都是字符串常量(字面量)或者常量引用(final定义的常量的引用)
+         * 则仍然使用编译器优化，即非StringBuilder的方式
+         *
+         * 2.针对于final修饰类、方法、基本数据类型、引用数据类型的量的结构时
+         * 尽量加上final
+         */
+        String s4 = s1 + s2;
+        System.out.println(s3 == s4);   //true
+    }
+
+    public static void test5(int highLevel){
+        String src = "";
+        for (int i = 0; i < highLevel; i++) {
+            //每次拼接都会创建一个StringBuilder对象，并调用toString()创建一个String
+            //内存中创建了许多StringBuilder和String,会占用内很多内存，而且因为创建了
+            //很多对象，导致GC的压力增大
+            src = src + "a";
+        }
+
+        //只有一个StringBuilder，每次添加一个字符串"a"
+        //append()方式添加字符串的效率要远高于String的字符串拼接方式
+        StringBuilder sb = new StringBuilder("");
+        for (int i = 0; i < highLevel; i++) {
+            sb.append("a");
+        }
+
+        //优化
+        //在实际开发中，如果基本确定一共要添加的字符串数量不高于某个限定值highlevel
+        //的情况下，要考虑使用带有初始容量的构造器进行实例化，避免扩容和复制操作带来的性能损耗
+        StringBuilder sbs = new StringBuilder(highLevel + 1);
+        for (int i = 0; i < highLevel; i++) {
+            sbs.append("a");
+        }
     }
 }
