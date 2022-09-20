@@ -548,16 +548,77 @@ String myInfo = new string("I love atguigu").intern();
 
 通俗点讲，Interned string就是确保字符串在内存里只有一份拷贝，这样可以节约内存空间，加快字符串操作任务的执行速度。注意，这个值会被存放在字符串内部池（String Intern Pool）
 
-![image-20210511145542579](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210511145546.png)
+![image-20220919155109769](README.assets/image-20220919155109769.png)
 
 ### 10.5.1. intern的使用：JDK6 vs JDK7/8
+
+**两道题**
+
+```bash
+1. new String("ab") 会创建几个对象？
+```
+
+```java
+public class StringTest6 {
+    public static void main(String[] args) {
+        String str = new String("abc");
+    }
+}
+```
+
+答案是两个，从字节码部分可以看出来
+
+```bash
+ 0 new #2 <java/lang/String>	#创建一个字符串对象，这是第一个，在对空间创建的
+ 3 dup
+ 4 ldc #3 <abc>		# 加载字符串中的"abc"对象。这是第二个，字符串常量池中的对象
+ 6 invokespecial #4 <java/lang/String.<init> : (Ljava/lang/String;)V>	#使用常量池中的字符串对象来初始化new出来的字符串对象
+ 9 astore_1
+10 return
+```
+
+```bash
+2.new String("a") + new String("b") 会创建几个对象？
+```
+
+```java
+public class StringTest6 {
+    public static void main(String[] args) {
+//        String str = new String("abc");
+        String str = new String("a") + new String("b");
+    }
+}
+```
+
+答案是6个，看字节码分析
+
+```bash
+ 0 new #2 <java/lang/StringBuilder>	# 1.字符串拼接操作，会创建一个StringBuilder对象
+ 3 dup
+ 4 invokespecial #3 <java/lang/StringBuilder.<init> : ()V>
+ 7 new #4 <java/lang/String>	# 2.创建一个String对象
+10 dup
+11 ldc #5 <a>					# 3.常量池中创建一个字符串"a"对象
+13 invokespecial #6 <java/lang/String.<init> : (Ljava/lang/String;)V>
+16 invokevirtual #7 <java/lang/StringBuilder.append : (Ljava/lang/String;)Ljava/lang/StringBuilder;>
+19 new #4 <java/lang/String>	# 4.创建一个String对象
+22 dup
+23 ldc #8 <b>				#5.常量池中创建一个字符串"b"对象
+25 invokespecial #6 <java/lang/String.<init> : (Ljava/lang/String;)V>
+28 invokevirtual #7 <java/lang/StringBuilder.append : (Ljava/lang/String;)Ljava/lang/StringBuilder;>
+31 invokevirtual #9 <java/lang/StringBuilder.toString : ()Ljava/lang/String;> # 6.StringBuilder调用toString方法，生成一个新的String对象，这里就不会在字符串常量池中创建"ab"这个字符串常量了
+34 astore_1
+35 return
+```
+
+**正式演示**
 
 ```java
 /**
  * ① String s = new String("1")
  * 创建了两个对象
  * 		堆空间中一个new对象
- * 		字符串常量池中一个字符串常量"1"（注意：此时字符串常量池中已有"1"）
+ * 		字符串常量池中一个字符串常量"1"（注意：此时字符串常量池中已有"1"），因为这个"1"是以字面量的形式定义的
  * ② s.intern()由于字符串常量池中已存在"1"
  * 
  * s  指向的是堆空间中的对象地址
@@ -565,12 +626,14 @@ String myInfo = new string("I love atguigu").intern();
  * 所以不相等
  */
 String s = new String("1");
-s.intern();
-String s2 = "1";
+s.intern();		//调用intern时，常量池中已经有了"1"，所以没啥操作
+String s2 = "1";	//指向常量池中的那个"1"
 System.out.println(s==s2); // jdk1.6 false jdk7/8 false
 
 /*
  * ① String s3 = new String("1") + new String("1")
+ * s3要经历创建StringBuilder，调用toString方法的过程，最终本质上还是new String("11")
+ * 但是经过StringBuilder，然后toString后的字符串，并不会放到常量池中，即"11"不会放到常量池
  * 等价于new String（"11"），但是，常量池中并不生成字符串"11"；
  *
  * ② s3.intern()
@@ -578,14 +641,25 @@ System.out.println(s==s2); // jdk1.6 false jdk7/8 false
  * 所以s3 和 s4 指向的都是一个地址
 */
 String s3 = new String("1") + new String("1");
-s3.intern();
-String s4 = "11";
+s3.intern();	//在字符串常量池中生成"11"。在jdk6中，在字符串常量池（永久代）中创建了一个新的对象"11"，也就有了新的地址。当创建其他的变量如 String s4 = "11"时，s4指向的就是字符串常量池（永久代）对象"11"的地址了。
+//在jdk7/8中，因为堆中已经有了new String("11")这个对象了，调用intern方法，仅会在字符串常量池（堆）中创建一个指向new //String("11")的指针。
+String s4 = "11";	//使用的是s3.intern()在常量池中生成的"11"的地址，发现该地址是一个指向new String("11")的指针，便将该指针指向的地址返回给s4
 System.out.println(s3==s4); //jdk1.6 false jdk7/8 true
+
+
+String s3 = new String("1") + new String("1");	//与前面同理
+String s4 = "11";	// 在字符串常量池中生成对象"11"
+s3.intern();	// 字符串常量池中已经有了值为"11"的字符串，不做任何操作
+System.out.println(s3 == s4) //false
 ```
 
-![image-20210511152240683](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210511152244.png)
+先s3.intern()后定义 String s4 = "11"
 
-![image-20200711145925091](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210511152302.png)
+![未命名文件 (1)](README.assets/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6%20(1).png)
+
+先定义String s4 = "11" 后进行 s3.intern()
+
+![未命名文件](README.assets/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6.png)
 
 总结String的intern()的使用：
 
@@ -601,13 +675,13 @@ JDK1.7起，将这个字符串对象尝试放入串池。
 
 **练习1**
 
-![image-20200711150859709](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210511153411.png)
+![image-20220919155456360](README.assets/image-20220919155456360.png)
 
-![image-20200711151326909](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210511153416.png)
+![image-20220919155506381](README.assets/image-20220919155506381.png)
 
 **练习2**
 
-![image-20200711151433277](https://gitee.com/vectorx/ImageCloud/raw/master/img/20210511153446.png)
+![image-20220919155516769](README.assets/image-20220919155516769.png)
 
 ### 10.5.2. intern的效率测试：空间角度
 
